@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "app_gpio.h": "c",
+        "app_defines.h": "c",
+        "app_afe.h": "c",
+        "app_adc.h": "c"
+    }
+}
