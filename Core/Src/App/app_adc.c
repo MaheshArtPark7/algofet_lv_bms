@@ -9,5 +9,5 @@
 int16_t app_adc_get_temp1(void)
 {
     // TODO:
-    HAL_ADC_GetValue(hadc1);
+//    HAL_ADC_GetValue(hadc1);
 }

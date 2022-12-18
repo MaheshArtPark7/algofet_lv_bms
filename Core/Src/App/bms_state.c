@@ -1,8 +1,3 @@
-
-#define SYS_OK (int8_t)(0)
-#define SYS_ERR (int8_t)(-1)
-#define SYS_FAIL (int8_t)(-2)
-
 typedef enum
 {
     eBmsState_Fault,
@@ -100,7 +95,7 @@ int16_t bms_state_transition_handler(TeBmsState state)
 
 // ------------------ DRIVE STATE ------------------------------
 /* Drive Entry */
-static void sm_state_drive_entry(TsStateMachine_t *const sm);
+static void sm_state_drive_entry(TsStateMachine_t *const sm)
 {
     // Check Drive inhibitions
     // If No Inhibitions set, Connect to Drive main
@@ -117,7 +112,7 @@ static void sm_state_drive_main(TsStateMachine_t *const sm)
 /* Drive Exit */
 static void sm_state_drive_exit(TsStateMachine_t *const sm)
 {
-    // If requested Charge Connet to "charge_main"
+    // If requested Charge Connect to "charge_main"
     // Else Open Fet's and Connect to next State
 }
 

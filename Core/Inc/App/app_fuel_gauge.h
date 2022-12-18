@@ -30,14 +30,32 @@ typedef struct
     uint8_t MaxError;            // 0x03  array[3]      m = 3
     uint16_t RemainingCapacity;  // 0x04  array[4]      m = 3
     uint16_t FullChargeCapacity; // 0x06  array[6]      m = 3+
-    uint16_t Voltage;            // 0x08  array[8]      m = 1
+    uint16_t vStack;             // 0x08  array[8]      m = 1 [milli volts]
     uint16_t AvgCurrent;         // 0x0A  array[10]     m = 2
-    uint16_t Temperature;        // 0x0C  array[12]     m = 2
+    uint16_t Temperature;        // 0x0C  array[12]     m = 2 [(temp/10) - 273.15] *C
     uint16_t Flags;              // 0x0E  array[14]
     uint16_t Current;            // 0x10  array[16]     m = 1
     uint16_t FlagsB;             // 0x12  array[18]
     /* End of Standard Data Commands */
 } TsGaugeData_t;
+
+typedef struct
+{
+    int SoC;
+    float RemCap;
+    float FullChgCap;
+    float vStack;
+    float AvgCurrent;
+    float BatTemp;
+    float InstCurrent;
+} TsAppGaugeData_t;
+
+typedef enum
+{
+    eAlgoFet_BLOCK0 = 0,
+    eAlgoFet_BLOCK1,
+    eAlgoFet_TotalNumBlocks
+}TeAlgoFet_FuelGauge_DataBlocks;
 
 extern int16_t app_gauge_init(void);
 extern int16_t app_gauge_tick(void);

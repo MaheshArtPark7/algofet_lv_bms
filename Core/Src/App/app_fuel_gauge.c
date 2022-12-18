@@ -9,6 +9,7 @@
 #include "i2c.h"
 
 TsGaugeData_t BQ34_GaugeInfo;
+TsAppGaugeData_t App_GaugeData;
 
 static TsDataBlockConfig_t block_read_cfg[BQ_NUM_BURST_RD_BLOCKS];
 static uint8_t gauge_read_buffer[BQ_RD_BUFFER_LEN];
@@ -67,11 +68,16 @@ static int16_t app_gauge_map_read_data(uint8_t *pBuff, uint8_t blockIdx)
 		}
 		switch(blockIdx)
 		{
-		case 0:
+		case eAlgoFet_BLOCK0:
 			BQ34_GaugeInfo.StateOfCharge = pBuff[0];
-			BQ34_GaugeInfo.Voltage = byte_map(pBuff[6], pBuff[7]);
+			BQ34_GaugeInfo.vStack = byte_map(pBuff[6], pBuff[7]);
 			BQ34_GaugeInfo.Current = byte_map(pBuff[14], pBuff[15]);
-			BQ34_GaugeInfo.Temperature =byte_map(pBuff[10], pBuff[11]);
+			BQ34_GaugeInfo.Temperature = byte_map(pBuff[10], pBuff[11]);
+
+			App_GaugeData.SoC = BQ34_GaugeInfo.StateOfCharge;
+			App_GaugeData.vStack = (float)BQ34_GaugeInfo.vStack/1000;
+			App_GaugeData.BatTemp = (float)(BQ34_GaugeInfo.Temperature / 10) - 273.15f;
+			App_GaugeData.InstCurrent = (float)BQ34_GaugeInfo.Current/1000;
 			break;
 		default:
 			break;
@@ -79,6 +85,8 @@ static int16_t app_gauge_map_read_data(uint8_t *pBuff, uint8_t blockIdx)
 
 		ret_val = SYS_OK;
 	}while(false);
+
+	return ret_val;
 }
 
 int16_t app_gauge_init(void)
@@ -86,28 +94,8 @@ int16_t app_gauge_init(void)
     int16_t ret_val = SYS_ERR;
 
     // Config block reads
-    block_read_cfg[0].Addr = 0x02u;
-    block_read_cfg[0].Len = 18u;
-#if 0
-    if (NULL == hi2c1)
-    {
-        return ret_val;
-    }
-    hi2c1->Instance = I2C1;
-    hi2c1->Init.ClockSpeed = 100000; /* 100 KHz */
-    hi2c1->Init.DutyCycle = I2C_DUTYCYCLE_2;
-    hi2c1->Init.OwnAddress1 = 0;
-    hi2c1->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-    hi2c1->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-    hi2c1->Init.OwnAddress2 = 0;
-    hi2c1->Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-    hi2c1->Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-
-    if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-    {
-        return ret_val;
-    }
-#endif
+    block_read_cfg[eAlgoFet_BLOCK0].Addr = 0x02u;
+    block_read_cfg[eAlgoFet_BLOCK0].Len = 18u;
 
     ret_val = SYS_OK;
 
@@ -120,9 +108,13 @@ int16_t app_gauge_tick(void)
     do
     {
     	// Read SoC
-    	if(SYS_OK != app_gauge_burst_read(&block_read_cfg[0]))
+    	if(SYS_OK != app_gauge_burst_read(&block_read_cfg[eAlgoFet_BLOCK0]))
     	{
     		break;
+    	}
+    	if(SYS_OK != app_gauge_map_read_data(gauge_read_buffer, eAlgoFet_BLOCK0))
+    	{
+    	    break;
     	}
     	ret_val = SYS_OK;
     }while(false);

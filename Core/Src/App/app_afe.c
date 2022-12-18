@@ -5,13 +5,15 @@
  */
 
 #include "app_afe.h"
+#include "app_defines.h"
+#include "bq76952.h"
 
 int16_t app_afe_init(void)
 {
 	int16_t ret_val = SYS_ERR;
 	do
 	{
-
+	    bq76952_init();
 		ret_val = SYS_OK;
 	}while(false);
 

@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "app_sys_init.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -57,20 +57,14 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define THERM1_IN_Pin GPIO_PIN_0
-#define THERM1_IN_GPIO_Port GPIOC
-#define THERM2_IN_Pin GPIO_PIN_1
-#define THERM2_IN_GPIO_Port GPIOC
-#define THERM3_IN_Pin GPIO_PIN_2
-#define THERM3_IN_GPIO_Port GPIOC
-#define THERM_IN_Pin GPIO_PIN_3
-#define THERM_IN_GPIO_Port GPIOC
-#define RGB_R_OUT_Pin GPIO_PIN_1
-#define RGB_R_OUT_GPIO_Port GPIOA
-#define RGB_G_OUT_Pin GPIO_PIN_2
-#define RGB_G_OUT_GPIO_Port GPIOA
-#define RGB_B_OUT_Pin GPIO_PIN_3
-#define RGB_B_OUT_GPIO_Port GPIOA
+#define TEMP1_IN_Pin GPIO_PIN_0
+#define TEMP1_IN_GPIO_Port GPIOC
+#define TEMP2_IN_Pin GPIO_PIN_1
+#define TEMP2_IN_GPIO_Port GPIOC
+#define RST_SHUT_Pin GPIO_PIN_1
+#define RST_SHUT_GPIO_Port GPIOA
+#define AFE_WAKE_Pin GPIO_PIN_2
+#define AFE_WAKE_GPIO_Port GPIOA
 #define SP1_CS_Pin GPIO_PIN_4
 #define SP1_CS_GPIO_Port GPIOC
 #define DFETOFF_OUT_Pin GPIO_PIN_5
@@ -81,26 +75,24 @@ void Error_Handler(void);
 #define DCHG_IN_GPIO_Port GPIOB
 #define DDSG_IN_Pin GPIO_PIN_2
 #define DDSG_IN_GPIO_Port GPIOB
-#define LED1_OUT_Pin GPIO_PIN_10
-#define LED1_OUT_GPIO_Port GPIOB
-#define LED2_OUT_Pin GPIO_PIN_12
-#define LED2_OUT_GPIO_Port GPIOB
-#define LED3_OUT_Pin GPIO_PIN_13
-#define LED3_OUT_GPIO_Port GPIOB
-#define LED4_OUT_Pin GPIO_PIN_14
+#define LED5_OUT_BLUE_Pin GPIO_PIN_12
+#define LED5_OUT_BLUE_GPIO_Port GPIOB
+#define LED5_OUT_GREEN_Pin GPIO_PIN_13
+#define LED5_OUT_GREEN_GPIO_Port GPIOB
+#define LED5_OUT_RED_Pin GPIO_PIN_14
+#define LED5_OUT_RED_GPIO_Port GPIOB
+#define LED4_OUT_Pin GPIO_PIN_15
 #define LED4_OUT_GPIO_Port GPIOB
-#define BUZZER_OUT_Pin GPIO_PIN_15
-#define BUZZER_OUT_GPIO_Port GPIOB
-#define RST_SHUT_OUT_Pin GPIO_PIN_6
-#define RST_SHUT_OUT_GPIO_Port GPIOC
-#define AFE_WAKE_OUT_Pin GPIO_PIN_7
-#define AFE_WAKE_OUT_GPIO_Port GPIOC
+#define LED3_OUT_Pin GPIO_PIN_6
+#define LED3_OUT_GPIO_Port GPIOC
+#define LED2_OUT_Pin GPIO_PIN_7
+#define LED2_OUT_GPIO_Port GPIOC
+#define LED1_OUT_Pin GPIO_PIN_8
+#define LED1_OUT_GPIO_Port GPIOC
 #define PWR5V_OUT_Pin GPIO_PIN_11
 #define PWR5V_OUT_GPIO_Port GPIOC
 #define BTN_IN_Pin GPIO_PIN_2
 #define BTN_IN_GPIO_Port GPIOD
-#define PWM_THERM_OUT_Pin GPIO_PIN_8
-#define PWM_THERM_OUT_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

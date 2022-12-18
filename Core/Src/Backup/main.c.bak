@@ -77,12 +77,15 @@ int main(void)
   /* USER CODE END Init */
 
   /* USER CODE BEGIN SysInit */
-
+  (void)SystemClock_Config();
+  // TODO: Sys_Init - HW
+  (void)app_sys_init();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   /* USER CODE BEGIN 2 */
-
+  // TODO: Sys_Init - SW Modules
+  (void)app_sys_peripheral_init();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
