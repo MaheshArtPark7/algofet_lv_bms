@@ -56,6 +56,11 @@ int16_t app_sys_peripheral_init(void)
 		{
 			break;
 		}
+		//State Machine Init
+		if(SYS_OK != app_bms_sm_init())
+		{
+		    break;
+		}
 		// CAN NW Init
 
 		ret_val = SYS_OK;
