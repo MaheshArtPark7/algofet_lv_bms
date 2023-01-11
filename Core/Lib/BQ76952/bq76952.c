@@ -34,9 +34,41 @@ int16_t bq76952_init(void)
     {
         uint16_t device_number = 0;
         bq76952_get_device_number(&device_number);
+        //RESET #Resets the Bq769x2 Registers
         //        bq76952_set_config_update();
         // TODO: Check if CFGUPDATE bit is SET
-        //        bq76952_settings_pwr_cfg();
+
+        //PowerConfig --> 0x2D80   #DPSLP_LDO bit -> 1 To leave Reg1 and Reg2 mode in present state when entering Deepsleep
+        //REG0Config --> 0x01
+        //DFETOFFPinConfig --> 0x42  #Set DFETOFF pin to control both CHG and DSG FET
+        //TS1Config --> 0xB3  #ADC raw data reported
+        //TS3Config --> 0xB3  #ADC raw data reported
+        //DCHGPinConfig --> 0x25
+        //DDSGPinConfig --> 0x25
+        //VCellMode --> 0x03C3 for 6S | 0x0303 for 4S
+        //EnabledProtectionsA --> 0xBC
+        //EnabledProtectionsB --> 0xF7
+        //CHGFETProtectionsA --> 0x00
+        //CHGFETProtectionsB --> 0x00
+        //CHGFETProtectionsC --> 0x00
+        //DSGFETProtectionsA --> 0x00
+        //DSGFETProtectionsB --> 0x00
+        //DSGFETProtectionsC --> 0x00
+        //DefaultAlarmMask --> 0xF882
+        //FETOptions --> 0x3D               # AFE should wait for the host command before turning FETs On. PDSG FET is turned ON before DSG.
+        //PrechargeStartVoltage --> 0x0A8C  # 2700mV
+        //PrechargeStopVoltage --> 0x0AF0   # 2800mV
+        //PredischargeTimeout --> 0x00      # No Timeout
+        //PredischargeStopDelta --> 0x05    #500mV
+        //BalancingConfiguration --> 0x03	#Autonomous balancing On in Relax and Charging mode
+        //CUVThreshold --> 0x31   			#2479mV, unit is 50.6mV. Refer to TRM page 166
+        //COVThreshold --> 0x55				#4310mV, unit is 50.6mV
+        //OCCThreshold --> 0x05				#Rsense is 1mohm. Unit is 2mV, so 10mV means a threshold of 10A
+        //OCD1Threshold --> 0x0A			#Rsense is 1mohm. Unit is 2mV, so 20mV means a threshold of 20A
+        //SCDThreshold --> 0x02				#40mV across 1mohm, i.e, 40A. Refer to TRM page 168
+        //SCDDelay --> 0x03					#30us. Enabled with a delay of (value - 1) * 15 us; min value of 1
+        //SCDLLatchLimit --> 0x01			#Only with load removal. Refer to TRM page 170
+
 
         ret_val = SYS_OK;
     } while (false);
