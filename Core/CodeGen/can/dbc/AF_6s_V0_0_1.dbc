@@ -1,0 +1,130 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: FCU CHARGER BATTERY
+
+
+BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
+ SG_ BAT_bms_PackSubState : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ BAT_gauge_intRes : 0|16@1+ (1,0) [0|65535] "mOhms" Vector__XXX
+ SG_ BAT_afe_vLoad : 0|16@1+ (1,0) [0|65535] "Volts" Vector__XXX
+ SG_ BAT_gauge_vPack : 0|16@1+ (1,0) [0|65535] "Volts" Vector__XXX
+ SG_ BAT_afe_iShunt : 0|16@1- (1,0) [-32768|32767] "A" Vector__XXX
+
+BO_ 2149578257 BAT_BMS_ExtTemp: 4 BATTERY
+ SG_ BAT_bms_ext_temp1 : 0|16@1+ (1,0) [0|65535] "*C"  FCU
+ SG_ BAT_bms_ext_temp2 : 16|16@1+ (1,0) [0|65535] "*C"  FCU
+
+BO_ 257 FCU_STATE_REQUEST: 1 FCU
+ SG_ FCU_StateRequest : 0|3@1+ (1,0) [0|255] ""  BATTERY
+
+BO_ 2149578256 BAT_BMS_OvrVIEW: 2 BATTERY
+ SG_ BAT_bms_PackState : 8|8@1+ (1,0) [0|255] ""  FCU
+ SG_ BAT_bms_StateReqSrc : 0|8@1+ (1,0) [0|255] ""  FCU
+
+BO_ 2149578784 BAT_GAUGE_ViT: 6 BATTERY
+ SG_ BAT_gauge_vPack : 0|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_gauge_tPack : 32|16@1+ (1,0) [0|5] "*C"  FCU
+ SG_ BAT_gauge_iPack : 16|16@1- (1,0) [-32768|32767] "A"  FCU
+
+BO_ 2149578768 BAT_GAUGE_OvrVIEW: 4 BATTERY
+ SG_ BAT_gauge_SoH : 8|8@1+ (1,0) [0|100] "%"  FCU
+ SG_ BAT_gauge_SoC : 0|8@1+ (1,0) [0|100] "%"  FCU
+ SG_ BAT_gauge_cycleCount : 16|16@1+ (1,0) [0|65535] "Cycles"  FCU
+
+BO_ 2149578514 BAT_AFE_vBRICK_C: 8 BATTERY
+ SG_ BAT_afe_vBrick12 : 48|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_afe_vBrick11 : 32|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_afe_vBrick10 : 16|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_afe_vBrick09 : 0|16@1+ (1,0) [0|65535] "Volts"  FCU
+
+BO_ 2149578515 BAT_AFE_vBRICK_D: 4 BATTERY
+ SG_ BAT_afe_vBrick14 : 16|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_afe_vBrick13 : 0|16@1+ (1,0) [0|65535] "Volts"  FCU
+
+BO_ 2149578513 BAT_AFE_vBRICK_B: 8 BATTERY
+ SG_ BAT_afe_vBrick08 : 48|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_afe_vBrick07 : 32|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_afe_vBrick06 : 16|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_afe_vBrick05 : 0|16@1+ (1,0) [0|65535] "Volts"  FCU
+
+BO_ 2149578512 BAT_AFE_vBRICK_A: 8 BATTERY
+ SG_ BAT_afe_vBrick04 : 48|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_afe_vBrick03 : 32|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_afe_vBrick02 : 16|16@1+ (1,0) [0|65535] "Volts"  FCU
+ SG_ BAT_afe_vBrick01 : 0|16@1+ (1,0) [0|65535] "Volts"  FCU
+
+
+
+CM_ "Ext CAN 2.0 B";
+CM_ BO_ 3221225472 "This is a message for not used signals, created by Vector CANdb++ DBC OLE DB Provider.";
+CM_ SG_ 3221225472 BAT_bms_PackSubState "Pack Sub State
+";
+CM_ SG_ 3221225472 BAT_gauge_intRes "Voltage of brick 1";
+CM_ SG_ 3221225472 BAT_afe_vLoad "Voltage of brick 1";
+CM_ SG_ 3221225472 BAT_gauge_vPack "Voltage of brick 1";
+CM_ SG_ 2149578257 BAT_bms_ext_temp1 "External Temperature Sensor 1
+";
+CM_ SG_ 2149578257 BAT_bms_ext_temp2 "External Temperature Sensor 2";
+CM_ SG_ 257 FCU_StateRequest "Pack State
+";
+CM_ SG_ 2149578256 BAT_bms_PackState "Pack State
+";
+CM_ SG_ 2149578256 BAT_bms_StateReqSrc "BMS State Control Source
+
+";
+CM_ SG_ 2149578784 BAT_gauge_vPack "Voltage of brick 1";
+CM_ SG_ 2149578784 BAT_gauge_tPack "Voltage of brick 1";
+CM_ SG_ 2149578784 BAT_gauge_iPack "Voltage of brick 1";
+CM_ SG_ 2149578768 BAT_gauge_SoH "Voltage of brick 1";
+CM_ SG_ 2149578768 BAT_gauge_SoC "Voltage of brick 1";
+CM_ SG_ 2149578768 BAT_gauge_cycleCount "Voltage of brick 1";
+CM_ SG_ 2149578514 BAT_afe_vBrick12 "Voltage of brick 1";
+CM_ SG_ 2149578514 BAT_afe_vBrick11 "Voltage of brick 1";
+CM_ SG_ 2149578514 BAT_afe_vBrick10 "Voltage of brick 1";
+CM_ SG_ 2149578514 BAT_afe_vBrick09 "Voltage of brick 1";
+CM_ SG_ 2149578515 BAT_afe_vBrick14 "Voltage of brick 1";
+CM_ SG_ 2149578515 BAT_afe_vBrick13 "Voltage of brick 1";
+CM_ SG_ 2149578513 BAT_afe_vBrick08 "Voltage of brick 1";
+CM_ SG_ 2149578513 BAT_afe_vBrick07 "Voltage of brick 1";
+CM_ SG_ 2149578513 BAT_afe_vBrick06 "Voltage of brick 1";
+CM_ SG_ 2149578513 BAT_afe_vBrick05 "Voltage of brick 1";
+CM_ SG_ 2149578512 BAT_afe_vBrick04 "Voltage of brick 1";
+CM_ SG_ 2149578512 BAT_afe_vBrick03 "Voltage of brick 1";
+CM_ SG_ 2149578512 BAT_afe_vBrick02 "Voltage of brick 1";
+CM_ SG_ 2149578512 BAT_afe_vBrick01 "Voltage of brick 1";
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "BusType" "CAN";
+
