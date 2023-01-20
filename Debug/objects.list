@@ -1,6 +1,7 @@
 "./Core/Lib/BQ76952/bq76952.o"
 "./Core/Src/App/app_adc.o"
 "./Core/Src/App/app_afe.o"
+"./Core/Src/App/app_bms_sm.o"
 "./Core/Src/App/app_can.o"
 "./Core/Src/App/app_fuel_gauge.o"
 "./Core/Src/App/app_gpio.o"

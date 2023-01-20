@@ -54,6 +54,6 @@ typedef struct
 } TsStateMachine_t;
 
 int16_t app_bms_sm_init(void);
-int16_t app_bms_state_transition_handler(TeBmsState state);
+int16_t app_bms_state_transition_handler(TeBmsState_t state);
 
 #endif /* INC_APP_TASK_1HZ_H_ */

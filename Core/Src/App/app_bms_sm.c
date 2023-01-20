@@ -4,24 +4,14 @@
  *  Created on: 01-Jan-2023
  */
 
+#include "stdbool.h"
+#include "stdint.h"
+#include "stdlib.h"
+#include "app_defines.h"
 #include "app_bms_sm.h"
 
 static TsStateMachine_t state_machine;
 
-static const TsBmsStateModule_t bms_sm[eBmsMaxStates] =
-    {
-        {.state = eBmsState_Unknown,
-         .callback = {NULL, sm_state_unknown_main, NULL}},
-        {.state = eBmsState_Fault,
-         .callback = {sm_state_fault_entry, sm_state_fault_main, sm_state_fault_exit}},
-        {.state = eBmsState_Idle,
-         .callback = {sm_state_idle_entry, sm_state_idle_main, sm_state_idle_exit}},
-        {.state = eBmsState_Drive,
-         .callback = {sm_state_drive_entry, sm_state_drive_main, sm_state_drive_exit}},
-        {.state = eBmsState_Charge,
-         .callback = {sm_state_charge_entry, sm_state_charge_main, sm_state_charge_exit}},
-        {.state = eBmsState_Sleep,
-         .callback = {sm_state_sleep_entry, sm_state_sleep_main, sm_state_sleep_exit}}};
 
 static void sm_state_unknown_main(TsStateMachine_t *const sm);
 
@@ -45,6 +35,22 @@ static void sm_state_sleep_entry(TsStateMachine_t *const sm);
 static void sm_state_sleep_main(TsStateMachine_t *const sm);
 static void sm_state_sleep_exit(TsStateMachine_t *const sm);
 
+static const TsBmsStateModule_t bms_sm[eBmsMaxStates] =
+    {
+        {.state = eBmsState_Unknown,
+         .callback = {NULL, sm_state_unknown_main, NULL}},
+        {.state = eBmsState_Fault,
+         .callback = {sm_state_fault_entry, sm_state_fault_main, sm_state_fault_exit}},
+        {.state = eBmsState_Idle,
+         .callback = {sm_state_idle_entry, sm_state_idle_main, sm_state_idle_exit}},
+        {.state = eBmsState_Drive,
+         .callback = {sm_state_drive_entry, sm_state_drive_main, sm_state_drive_exit}},
+        {.state = eBmsState_Charge,
+         .callback = {sm_state_charge_entry, sm_state_charge_main, sm_state_charge_exit}},
+        {.state = eBmsState_Sleep,
+         .callback = {sm_state_sleep_entry, sm_state_sleep_main, sm_state_sleep_exit}}};
+
+
 int16_t app_bms_sm_init(void)
 {
     int16_t exit_code = SYS_ERR;
@@ -55,7 +61,7 @@ int16_t app_bms_sm_init(void)
 }
 
 /* BMS StateMachine State Transition Handler */
-int16_t app_bms_state_transition_handler(TeBmsState state)
+int16_t app_bms_state_transition_handler(TeBmsState_t state)
 {
     int16_t exit_code = SYS_ERR;
 
@@ -109,9 +115,9 @@ static void sm_state_drive_main(TsStateMachine_t *const sm)
         case eBmsStateRequest_Charge:
             bms_state = (sm->inhibit_charge_entry == false) ? eBmsState_Charge : eBmsState_Drive;
             break;
-        case eBmsState_Idle:
-            bms_state = eBmsState_Idle;
-            break;
+//        case eBmsState_Idle:
+//            bms_state = eBmsState_Idle;
+//            break;
         case eBmsStateRequest_Sleep:
             bms_state = eBmsState_Sleep;
             break;
@@ -189,7 +195,7 @@ static void sm_state_fault_main(TsStateMachine_t *const sm)
     {
         bms_state = eBmsState_Idle;
     }
-    else if (sm->request == eBmsState_Sleep)
+    else if (sm->request == eBmsStateRequest_Sleep)
     {
         bms_state = eBmsState_Sleep;
     }
@@ -262,4 +268,13 @@ static void sm_state_idle_exit(TsStateMachine_t *const sm)
 static void sm_state_sleep_entry(TsStateMachine_t *const sm)
 {
 }
+static void sm_state_sleep_main(TsStateMachine_t *const sm)
+{
+}
+static void sm_state_sleep_exit(TsStateMachine_t *const sm)
+{
+}
 
+static void sm_state_unknown_main(TsStateMachine_t *const sm)
+{
+}

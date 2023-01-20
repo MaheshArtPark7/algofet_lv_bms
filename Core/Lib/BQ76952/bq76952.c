@@ -10,12 +10,17 @@
 
 extern SPI_HandleTypeDef hspi1;
 
+static TsBmsPower_cfg TsBmsPower_cfg_t;
+
 //------------------------------------------------------------------------------
 // Static Functions declaration
 
 static int16_t bq76952_dir_cmd_access(uint8_t dir_cmd, bool read_write, uint8_t data_len, uint8_t *p_data);
+static int16_t bq76952_write_to_register(uint8_t reg_address, uint8_t *pdata, uint8_t len);
 static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint8_t subCmd);
 static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint8_t *p_data, uint8_t len);
+static int16_t bq76952_afe_reset(void);
+static int16_t bq76952_set_powercfg(TsBmsPower_cfg *pTsBmsPower_cfg_t);
 static int16_t bq76952_get_device_number(uint16_t *pDev_num);
 static int16_t bq76952_set_config_update(void);
 static int16_t bq76952_config(void);
@@ -33,12 +38,24 @@ int16_t bq76952_init(void)
     do
     {
         uint16_t device_number = 0;
+        TsBmsPower_cfg_t.power_cfg_reg = PowerConfig;
+        TsBmsPower_cfg_t.reg_val = 0x2D80;
+        TsBmsPower_cfg_t.len = 4;
+
+
+
         bq76952_get_device_number(&device_number);
         //RESET #Resets the Bq769x2 Registers
-        //        bq76952_set_config_update();
+        bq76952_afe_reset();
+
+        // Enter config update mode
+        bq76952_set_config_update();
+
         // TODO: Check if CFGUPDATE bit is SET
 
-        //PowerConfig --> 0x2D80   #DPSLP_LDO bit -> 1 To leave Reg1 and Reg2 mode in present state when entering Deepsleep
+        //
+        // Leave Reg1 and Reg2 mode in present state when entering deep-sleep state
+        bq76952_set_powercfg(&TsBmsPower_cfg_t);
         //REG0Config --> 0x01
         //DFETOFFPinConfig --> 0x42  #Set DFETOFF pin to control both CHG and DSG FET
         //TS1Config --> 0xB3  #ADC raw data reported
@@ -76,6 +93,36 @@ int16_t bq76952_init(void)
     return ret_val;
 }
 
+static int16_t bq76952_afe_reset(void)
+{
+    int16_t ret_val = SYS_ERR;
+    do
+    {
+        if (SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, RESET))
+        {
+            break;
+        }
+    } while (false);
+    ret_val = SYS_OK;
+    return ret_val;
+}
+
+static int16_t bq76952_set_powercfg(TsBmsPower_cfg *pTsBmsPower_cfg_t)
+{
+    //PowerConfig --> 0x2D80   #DPSLP_LDO bit -> 1
+
+    int16_t ret_val = SYS_ERR;
+    do
+    {
+        if(SYS_OK != bq76952_write_to_register(SUB_CMD_REG_LSB_ADDR, pTsBmsPower_cfg_t->buffer, pTsBmsPower_cfg_t->len))
+        {
+            break;
+        }
+    } while (false);
+    ret_val = SYS_OK;
+    return ret_val;
+}
+
 static int16_t bq76952_get_device_number(uint16_t *pDev_num)
 {
     int16_t ret_val = SYS_ERR;
@@ -97,8 +144,13 @@ static int16_t bq76952_get_device_number(uint16_t *pDev_num)
 static int16_t bq76952_set_config_update(void)
 {
     int16_t ret_val = SYS_ERR;
-    // Enter CONFIG_UPDATE mode
-//    bq76952_sub_cmd_access((uint16_t)SET_CFGUPDATE, SPI_WR_BLOCKING, SUB_CMD_LEN, NULL);
+    do
+    {
+        if (SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, SET_CFGUPDATE))
+        {
+            break;
+        }
+    } while (false);
     ret_val = SYS_OK;
     return ret_val;
 }
@@ -149,6 +201,26 @@ static uint8_t get_crc8(uint8_t *pData, uint8_t len)
         }
     }
     return crc;
+}
+static int16_t bq76952_write_to_register(uint8_t reg_address, uint8_t *pdata, uint8_t len)
+{
+    int16_t ret_val = SYS_ERR;
+    do
+    {
+        if(pdata == NULL)
+        {
+            break;
+        }
+        for(uint8_t i = 0; i < len; i++)
+        {
+            if(SYS_OK != bq76952_write_sub_cmd(reg_address+i, pdata[i]))
+            {
+                break;
+            }
+        }
+        ret_val = SYS_OK;
+    }while(false);
+return ret_val;
 }
 
 static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint8_t subCmd)

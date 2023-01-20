@@ -151,7 +151,7 @@ void app_task_1Hz(void const *argument)
     for (;;)
     {
         app_gauge_tick();
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+//        vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
     /* USER CODE END app_task_1Hz */
 }
@@ -173,7 +173,7 @@ void app_task_10hz(void const *argument)
     for (;;)
     {
 
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+//        vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
     /* USER CODE END app_task_10hz */
 }
@@ -195,7 +195,7 @@ void app_task_100hz(void const *argument)
     for (;;)
     {
         // Battery State Machine
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+//        vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
     /* USER CODE END app_task_100hz */
 }
