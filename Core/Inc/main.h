@@ -57,10 +57,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define TEMP1_IN_Pin GPIO_PIN_0
-#define TEMP1_IN_GPIO_Port GPIOC
 #define TEMP2_IN_Pin GPIO_PIN_1
 #define TEMP2_IN_GPIO_Port GPIOC
+#define NTC_Pin GPIO_PIN_2
+#define NTC_GPIO_Port GPIOC
 #define RST_SHUT_Pin GPIO_PIN_1
 #define RST_SHUT_GPIO_Port GPIOA
 #define AFE_WAKE_Pin GPIO_PIN_2
@@ -93,6 +93,7 @@ void Error_Handler(void);
 #define PWR5V_OUT_GPIO_Port GPIOC
 #define BTN_IN_Pin GPIO_PIN_2
 #define BTN_IN_GPIO_Port GPIOD
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

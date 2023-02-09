@@ -18,6 +18,7 @@ typedef struct
         {
             uint16_t x;
             uint16_t reg_val;
+            uint16_t power_cfg_reg;
         };
         uint8_t buffer[4];
     };
