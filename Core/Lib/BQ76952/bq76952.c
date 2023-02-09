@@ -12,23 +12,64 @@ extern SPI_HandleTypeDef hspi1;
 
 static TsBmsPower_cfg TsBmsPower_cfg_t;
 
+// Global Variables for cell voltages, temperatures, Stack voltage, PACK Pin voltage, LD Pin voltage, CC2 current
+uint8_t rxdata [2];
+uint8_t RX_data [2] = {0x00, 0x00}; // used in several functions to store data read from BQ769x2
+uint8_t RX_32Byte [32] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+uint16_t CellVoltage [16] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+float Temperature [3] = {0,0,0};
+uint16_t Stack_Voltage = 0x00;
+uint16_t Pack_Voltage = 0x00;
+uint16_t LD_Voltage = 0x00;
+uint16_t Pack_Current = 0x00;
+
+uint8_t FET_Status;  // FET Status register contents  - Shows states of FETs
+uint16_t CB_ActiveCells;  // Cell Balancing Active Cells
+
+uint8_t LD_ON = 0;	// Load Detect status bit
+uint8_t DSG = 0;   // discharge FET state
+uint8_t CHG = 0;   // charge FET state
+uint8_t PCHG = 0;  // pre-charge FET state
+uint8_t PDSG = 0;  // pre-discharge FET state
+
 //------------------------------------------------------------------------------
 // Static Functions declaration
-
-static int16_t bq76952_dir_cmd_access(uint8_t dir_cmd, bool read_write, uint8_t data_len, uint8_t *p_data);
-static int16_t bq76952_write_to_register(uint8_t reg_address, uint8_t *pdata, uint8_t len);
-static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint8_t subCmd);
+static uint8_t CRC8(uint8_t *ptr, uint8_t len);
+static int16_t bq76952_dir_cmd_read(uint8_t dirCmdRegAddr, uint8_t *p_data, uint8_t len);
+static int16_t bq76952_dir_cmd_write(uint8_t dirCmdRegAddr, uint16_t dirCmd);
+static int16_t bq76952_write_to_ram_register(uint8_t reg_address, uint8_t *pdata, uint8_t len);
+static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint16_t subCmd);
 static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint8_t *p_data, uint8_t len);
-static int16_t bq76952_afe_reset(void);
+
+//Subcommands and Command-Only Subcommands Declaration
 static int16_t bq76952_set_powercfg(TsBmsPower_cfg *pTsBmsPower_cfg_t);
 static int16_t bq76952_get_device_number(uint16_t *pDev_num);
 static int16_t bq76952_set_config_update(void);
+static int16_t bq76952_AFE_reset(void);
 static int16_t bq76952_config(void);
 static int16_t bq76952_enter_config_update(void);
 static int16_t bq76952_settings_pwr_cfg(void);
 static int16_t bq76952_settings_reg0_cfg(void);
 static int16_t bq76952_settings_reg12_cfg(void);
 
+//FET Control Functions Declaration
+static int16_t bq76952_FETs_SleepDisable(void);
+static int16_t bq76952_FETs_enable(void);
+static int16_t bq76952_FETs_on(void);
+static int16_t bq76952_FETs_off (void);
+static int16_t bq76952_FETs_ReadStatus(void);
+static int16_t bq76952_FETs_Control(void);
+extern int16_t bq76952_FETs_call(void);
+static int16_t bq76952_dischargeOFF(void);
+static int16_t bq76952_chargeOFF(void);
+
+//Direct Commands Declaration
+static int16_t bq76952_alarmEnable(uint16_t command);
+static int16_t bq76952_readVoltage(uint8_t cmd);
+static int16_t bq76952_readAllVoltages();
+static int16_t bq76952_ReadCurrent();
+static float bq76952_ReadTemp(uint8_t cmd);
 //------------------------------------------------------------------------------
 // Static Functions definition
 
@@ -44,18 +85,26 @@ int16_t bq76952_init(void)
 
 
 
-        bq76952_get_device_number(&device_number);
-        //RESET #Resets the Bq769x2 Registers
-        bq76952_afe_reset();
+        //bq76952_get_device_number(&device_number);
 
-        // Enter config update mode
-        bq76952_set_config_update();
+        //bq76952_FETs_enable();//Enables the FETs
+        //HAL_Delay(100);
+
+        //RESET #Resets the Bq769x2 Registers
+        //bq76952_AFE_reset();
+
+
+        //Enter config update mode
+        //bq76952_set_config_update();
+
+        //Call the FET Control Commands
+        //bq76952_FETs_call();
 
         // TODO: Check if CFGUPDATE bit is SET
 
         //
         // Leave Reg1 and Reg2 mode in present state when entering deep-sleep state
-        bq76952_set_powercfg(&TsBmsPower_cfg_t);
+        //bq76952_set_powercfg(&TsBmsPower_cfg_t);
         //REG0Config --> 0x01
         //DFETOFFPinConfig --> 0x42  #Set DFETOFF pin to control both CHG and DSG FET
         //TS1Config --> 0xB3  #ADC raw data reported
@@ -93,9 +142,161 @@ int16_t bq76952_init(void)
     return ret_val;
 }
 
-static int16_t bq76952_afe_reset(void)
+
+
+//------------------------------------------------------------------------------
+// FET CONTROL COMMANDS
+
+static int16_t bq76952_FETs_SleepDisable(void)
 {
-    int16_t ret_val = SYS_ERR;
+	// Puts the FETs in performance mode
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+		if(SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, SLEEP_DISABLE))
+		{
+			break;
+		}
+	}while(false);
+	ret_val = SYS_OK;
+	return ret_val;
+}
+
+static int16_t bq76952_FETs_enable(void)
+{
+	// Enables all the FETs to be controlled
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+	    if (SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, FET_ENABLE))
+	    {
+	       break;
+	    }
+	} while (false);
+	ret_val = SYS_OK;
+	return ret_val;
+}
+
+
+
+static int16_t bq76952_FETs_on(void)
+{
+	// Switches on all the FETs
+	int16_t ret_val = SYS_ERR;
+	do
+    {
+	    if (SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, ALL_FETS_ON))
+	    {
+		    break;
+	    }
+	} while (false);
+	ret_val = SYS_OK;
+    return ret_val;
+}
+
+static int16_t bq76952_FETs_off (void)
+{
+	// Switches off all the FETs
+	int16_t ret_val = SYS_ERR;
+    do
+    {
+		if (SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, ALL_FETS_OFF))
+		{
+		    break;
+	    }
+	} while (false);
+    ret_val = SYS_OK;
+    return ret_val;
+}
+
+static int16_t bq76952_FETs_Control(void)
+{
+    //To control the FETs with MCU only
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+		if(SYS_OK != bq76952_write_sub_cmd(FET_CONTROL, FETs_CONTROL))
+		{
+			break;
+		}
+	}while(false);
+	ret_val = SYS_OK;
+	return ret_val;
+}
+
+static int16_t bq76952_dischargeOFF(void)
+{
+	//Disable DSG and PDSG FET drivers
+	int16_t ret_val = SYS_ERR;
+    do
+    {
+		if (SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, DSG_PDSG_OFF))
+		{
+		    break;
+	    }
+	} while (false);
+    ret_val = SYS_OK;
+    return ret_val;
+}
+
+static int16_t bq76952_chargeOFF(void)
+{
+	//Disable CHG and PCHG FET drivers
+	int16_t ret_val = SYS_ERR;
+    do
+    {
+		if (SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, CHG_PCHG_OFF))
+		{
+		    break;
+	    }
+	} while (false);
+    ret_val = SYS_OK;
+    return ret_val;
+}
+
+/*static int16_t bq76952_FETs_ReadStatus(void)
+{
+	// Reads FET Status to see which FETs are enabled
+	bq76952_dir_cmd_read(FETStatus, 0x00, R);
+	FET_Status = (RX_data[1]*256 + RX_data[0]);
+	DSG = ((0x4 & RX_data[0])>>2);// discharge FET state
+	CHG = (0x1 & RX_data[0]);// charge FET state
+	PCHG = ((0x2 & RX_data[0])>>1);// pre-charge FET state
+	PDSG = ((0x8 & RX_data[0])>>3);// pre-discharge FET state
+}*/
+
+
+//FET Control call
+extern int16_t bq76952_FETs_call(void)
+{
+	//For calling all FET Commands
+	bq76952_AFE_reset();
+	HAL_Delay(100);
+	//bq76952_FETs_SleepDisable();
+	//HAL_Delay(100);
+	//bq76952_init();
+	//HAL_Delay(100);
+	bq76952_FETs_enable();
+	HAL_Delay(100);
+	//bq76952_FETs_Control();
+	//HAL_Delay(100);
+	//bq76952_FETs_on();
+	//HAL_Delay(100);
+	//bq76952_FETs_off();
+	//HAL_Delay(100);
+	//bq76952_dischargeOFF();
+	//HAL_Delay(100);
+	//bq76952_chargeOFF();
+	//HAL_Delay(100);
+}
+
+
+//------------------------------------------------------------------------------------------------------------
+//AFE Functions
+static int16_t bq76952_AFE_reset(void)
+{
+	// Resets all the registers of the AFE
+	int16_t ret_val = SYS_ERR;
     do
     {
         if (SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, RESET))
@@ -114,7 +315,7 @@ static int16_t bq76952_set_powercfg(TsBmsPower_cfg *pTsBmsPower_cfg_t)
     int16_t ret_val = SYS_ERR;
     do
     {
-        if(SYS_OK != bq76952_write_to_register(SUB_CMD_REG_LSB_ADDR, pTsBmsPower_cfg_t->buffer, pTsBmsPower_cfg_t->len))
+        if(SYS_OK != bq76952_write_to_ram_register(SUB_CMD_REG_LSB_ADDR, pTsBmsPower_cfg_t->buffer, pTsBmsPower_cfg_t->len))
         {
             break;
         }
@@ -125,6 +326,7 @@ static int16_t bq76952_set_powercfg(TsBmsPower_cfg *pTsBmsPower_cfg_t)
 
 static int16_t bq76952_get_device_number(uint16_t *pDev_num)
 {
+	//Reads the device number of the AFE
     int16_t ret_val = SYS_ERR;
     do
     {
@@ -139,6 +341,76 @@ static int16_t bq76952_get_device_number(uint16_t *pDev_num)
     } while (false);
     ret_val = SYS_OK;
     return ret_val;
+}
+
+extern int16_t led_blink(void)
+{
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+    HAL_Delay(100);
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_13);
+	HAL_Delay(200);
+}
+//----------------------------------------------DIRECT COMMANDS-------------------------------------------------------------------
+
+static int16_t bq76952_alarmEnable(uint16_t command)
+{
+	//To set a value to the Alarm Enable Register
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+		if(SYS_OK != bq76952_dir_cmd_write(AlarmEnable, command))
+		{
+			break;
+		}
+	}while(false);
+	ret_val = SYS_OK;
+	return ret_val;
+}
+
+
+static int16_t bq76952_readVoltage(uint8_t cmd)
+{
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+	    bq76952_dir_cmd_read(cmd, 0x00, 2);
+	    if(cmd >= Cell1Voltage && cmd <= Cell16Voltage)
+	    {//Cells 1 through 16 (0x14 to 0x32)
+			return (RX_data[1]*256 + RX_data[0]); //voltage is reported in mV
+	    }
+	    else
+	    {//stack, Pack, LD
+			return 10 * (RX_data[1]*256 + RX_data[0]); //voltage is reported in 0.01V units
+	    }
+    }while(false);
+	return ret_val;
+}
+
+static int16_t bq76952_readAllVoltages()
+{
+	int cellvoltageholder = Cell1Voltage; //Cell1Voltage is 0x14
+	for (int x = 0; x < 16; x++)
+	  {//Reads all cell voltages
+	    CellVoltage[x] = bq76952_readVoltage(cellvoltageholder);
+	    cellvoltageholder = cellvoltageholder + 2;
+	  }
+	  Stack_Voltage = bq76952_readVoltage(StackVoltage);
+	  Pack_Voltage = bq76952_readVoltage(PACKPinVoltage);
+	  LD_Voltage = bq76952_readVoltage(LDPinVoltage);
+}
+
+static int16_t bq76952_ReadCurrent()
+// Reads PACK current
+{
+	bq76952_dir_cmd_read(CC2Current, 0x00, 2);
+	return (RX_data[1]*256 + RX_data[0]);  // current is reported in mA
+}
+
+static float bq76952_ReadTemp(uint8_t cmd)
+{
+	//Reads the temperature of the AFE
+	bq76952_dir_cmd_read(cmd, 0x00, R);
+	return (0.1 * (float) (RX_data[1]*256 + RX_data[0])) - 273.15;
 }
 
 static int16_t bq76952_set_config_update(void)
@@ -184,26 +456,9 @@ static int16_t bq76952_settings_reg12_cfg(void)
     ret_val = SYS_OK;
     return ret_val;
 }
-
-static uint8_t get_crc8(uint8_t *pData, uint8_t len)
+static int16_t bq76952_write_to_ram_register(uint8_t reg_address, uint8_t *pdata, uint8_t len)
 {
-    uint8_t crc = 0xff;
-    size_t i, j;
-    for (i = 0; i < len; i++)
-    {
-        crc ^= pData[i];
-        for (j = 0; j < 8; j++)
-        {
-            if ((crc & 0x80) != 0)
-                crc = (uint8_t)((crc << 1) ^ 0x31);
-            else
-                crc <<= 1;
-        }
-    }
-    return crc;
-}
-static int16_t bq76952_write_to_register(uint8_t reg_address, uint8_t *pdata, uint8_t len)
-{
+	//Writes data to the RAM Register
     int16_t ret_val = SYS_ERR;
     do
     {
@@ -223,18 +478,65 @@ static int16_t bq76952_write_to_register(uint8_t reg_address, uint8_t *pdata, ui
 return ret_val;
 }
 
-static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint8_t subCmd)
+static uint8_t get_crc8(uint8_t *pData, uint8_t len)
 {
+    uint8_t crc = 0xff;
+    size_t i, j;
+    for (i = 0; i < len; i++)
+    {
+        crc ^= pData[i];
+        for (j = 0; j < 8; j++)
+        {
+            if ((crc & 0x80) != 0)
+                crc = (uint8_t)((crc << 1) ^ 0x31);
+            else
+                crc <<= 1;
+        }
+    }
+    return crc;
+}
+static uint8_t CRC8(uint8_t *ptr, uint8_t len)
+//Calculates CRC8 for passed bytes.
+{
+	uint8_t i;
+	uint8_t crc=0;
+	while(len--!=0)
+	{
+		for(i=0x80; i!=0; i/=2)
+		{
+			if((crc & 0x80) != 0)
+			{
+				crc *= 2;
+				crc ^= 0x107;
+			}
+			else
+				crc *= 2;
+
+			if((*ptr & i)!=0)
+				crc ^= 0x107;
+		}
+		ptr++;
+	}
+	return(crc);
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------
+// READ/WRITE FUNCTIONS FOR DIRECT COMMANDS and SUBCOMMANDS
+
+static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint16_t subCmd)
+{
+	//To write data to subcommand address register (0x3E)
+	uint8_t subCmdRegAddrWRITE = subCmdRegAddr | 0x80u; //Changes the leftmost bit to 1 since W Operation
     int16_t ret_val = SYS_ERR;
     uint8_t pTxData[SPI_SUB_CMD_FRAME_LEN] = {0};
     uint8_t pRxData[SPI_SUB_CMD_FRAME_LEN] = {0};
     uint8_t retry_cnt = 0;
-    uint16_t TxByte, RxByte;
+    uint16_t TxByte, RxByte = 0;
     for (uint8_t i = 0; i < SUB_CMD_LEN; i++)
     {
-        pTxData[0] = subCmdRegAddr + i;
-        pTxData[1] = subCmd;
-        pTxData[2] = get_crc8(pTxData, SUB_CMD_LEN);
+        pTxData[0] = subCmdRegAddrWRITE + i;
+        pTxData[1] = subCmd >>(i*8); //To retrieve the lower byte and then the higher byte subsequently
+        pTxData[2] = CRC8(pTxData, SUB_CMD_LEN );
         TxByte = pTxData[0] | (pTxData[1] << 8);
         do
         {
@@ -244,7 +546,7 @@ static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint8_t subCmd)
             HAL_Delay(2);
             RxByte = pRxData[0] | (pRxData[1] << 8);
             retry_cnt++;
-        } while ((TxByte != RxByte) && (retry_cnt > 3));
+        } while ((TxByte != RxByte) && (retry_cnt < 3));
         if ((TxByte == RxByte) && (retry_cnt < 4))
         {
             ret_val = SYS_OK;
@@ -260,6 +562,7 @@ static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint8_t subCmd)
 
 static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint8_t *p_data, uint8_t len)
 {
+	//To read data from the Subcommand Buffer register(0x40)
     int16_t ret_val = SYS_ERR;
     do
     {
@@ -279,7 +582,7 @@ static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint8_t *
         {
             pTxData[0] = subCmdRegAddr + i;
             pTxData[1] = 0xFF;
-            pTxData[2] = get_crc8(pTxData, SUB_CMD_LEN);
+            pTxData[2] = CRC8(pTxData, SUB_CMD_LEN);
             TxByte = pTxData[0];
             retry_cnt = 0;
             do
@@ -305,3 +608,98 @@ static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint8_t *
     } while (false);
     return ret_val;
 }
+
+static int16_t bq76952_dir_cmd_write(uint8_t dirCmdRegAddr, uint16_t dirCmd)
+{
+	uint8_t dirCmdRegAddrWRITE = dirCmdRegAddr|0x80; //Changes leftmost bit to 1 since Write Command
+	int16_t ret_val = SYS_ERR;
+	uint8_t pTxData[SPI_DIR_CMD_FRAME_LEN] = {0};
+	uint8_t pRxData[SPI_DIR_CMD_FRAME_LEN] = {0};
+	uint8_t retry_cnt = 0;
+	uint16_t TxByte, RxByte;
+	for (uint8_t i = 0; i < SUB_CMD_LEN; i++)
+	        {
+	            pTxData[0] = dirCmdRegAddrWRITE + i;
+	            pTxData[1] = dirCmd >> (i*8);
+	            pTxData[2] = CRC8(pTxData, SUB_CMD_LEN);
+	            TxByte = pTxData[0] | (pTxData[1] << 8);
+	            do
+	            {
+	            	HAL_GPIO_WritePin(SP1_CS_GPIO_Port, SP1_CS_Pin, 0);                                          // Enable CS
+	                HAL_SPI_TransmitReceive(&hspi1, pTxData, pRxData, SPI_DIR_CMD_FRAME_LEN, SPI_WR_TIMEOUT_MS); // Rx & Tx simultaneously (Full Duplex)
+	            	HAL_GPIO_WritePin(SP1_CS_GPIO_Port, SP1_CS_Pin, 1);                                          // Disable CS
+	            	HAL_Delay(2);
+	            	RxByte = pRxData[0] | (pRxData[1] << 8);
+	            	retry_cnt++;
+	            }while ((TxByte != RxByte) && (retry_cnt > 3));
+	            if ((TxByte == RxByte) && (retry_cnt < 4))
+	                    {
+	                        ret_val = SYS_OK;
+	                    }
+	                    else
+	                    {
+	                        ret_val = SYS_ERR;
+	                        break;
+	                    }
+	          }
+	                return ret_val;
+}
+
+static int16_t bq76952_dir_cmd_read(uint8_t dirCmdRegAddr, uint8_t *p_data, uint8_t len)
+{
+	int16_t ret_val = SYS_ERR;
+	do
+	    {
+	        if ((len > DIR_CMD_DATA_BUFF_LEN_MAX) || (len == 0))
+	        {
+	            break;
+	        }
+	        if (p_data == NULL)
+	        {
+	            break;
+	        }
+    uint8_t pTxData[SPI_DIR_CMD_FRAME_LEN] = {0};
+    uint8_t pRxData[SPI_DIR_CMD_FRAME_LEN] = {0};
+    uint8_t retry_cnt = 0;
+    uint16_t TxByte, RxByte;
+    for (uint8_t i = 0; i < SUB_CMD_LEN; i++)
+        {
+            pTxData[0] = dirCmdRegAddr + i;
+            pTxData[1] = 0xFF;
+            pTxData[2] = CRC8(pTxData, SUB_CMD_LEN);
+            TxByte = pTxData[0];
+            retry_cnt = 0;
+            do
+                {
+                	HAL_GPIO_WritePin(SP1_CS_GPIO_Port, SP1_CS_Pin, 0);                                          // Enable CS
+                    HAL_SPI_TransmitReceive(&hspi1, pTxData, pRxData, SPI_DIR_CMD_FRAME_LEN, SPI_WR_TIMEOUT_MS); // Rx & Tx simultaneously (Full Duplex)
+                    HAL_GPIO_WritePin(SP1_CS_GPIO_Port, SP1_CS_Pin, 1);                                          // Disable CS
+                    HAL_Delay(2);
+                    RxByte = pRxData[0];
+                    retry_cnt++;
+                } while ((TxByte != RxByte) && (retry_cnt > 3));
+                  if ((TxByte == RxByte) && (retry_cnt < 4))
+                     {
+                	  p_data[i] = RxByte;
+                      ret_val = SYS_OK;
+                     }
+                     else
+                        {
+                            ret_val = SYS_ERR;
+                            break;
+                        }
+        }
+	    }while(false);
+	return ret_val;
+}
+
+
+
+
+
+
+
+
+
+
+
