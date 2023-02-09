@@ -21,10 +21,16 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
+int res = 0;
 
+#define NTC_UP_R 10000.0f
+#define A 0.0007334731592130968f
+#define B 0.0002779985616647887f
+#define C 7.74576686768211e-8
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 /* ADC1 init function */
 void MX_ADC1_Init(void)
@@ -43,10 +49,10 @@ void MX_ADC1_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV6;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ScanConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
@@ -90,12 +96,35 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     /**ADC1 GPIO Configuration
     PC0     ------> ADC1_IN10
     PC1     ------> ADC1_IN11
+    PC2     ------> ADC1_IN12
     */
-    GPIO_InitStruct.Pin = TEMP1_IN_Pin|TEMP2_IN_Pin;
+    GPIO_InitStruct.Pin = GPIO_PIN_0|TEMP2_IN_Pin|NTC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+    /* ADC1 DMA Init */
+    /* ADC1 Init */
+    hdma_adc1.Instance = DMA2_Stream4;
+    hdma_adc1.Init.Channel = DMA_CHANNEL_0;
+    hdma_adc1.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_adc1.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_adc1.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_adc1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+    hdma_adc1.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+    hdma_adc1.Init.Mode = DMA_NORMAL;
+    hdma_adc1.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_adc1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_adc1) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(adcHandle,DMA_Handle,hdma_adc1);
+
+    /* ADC1 interrupt Init */
+    HAL_NVIC_SetPriority(ADC_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(ADC_IRQn);
   /* USER CODE BEGIN ADC1_MspInit 1 */
 
   /* USER CODE END ADC1_MspInit 1 */
@@ -116,9 +145,15 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     /**ADC1 GPIO Configuration
     PC0     ------> ADC1_IN10
     PC1     ------> ADC1_IN11
+    PC2     ------> ADC1_IN12
     */
-    HAL_GPIO_DeInit(GPIOC, TEMP1_IN_Pin|TEMP2_IN_Pin);
+    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_0|TEMP2_IN_Pin|NTC_Pin);
 
+    /* ADC1 DMA DeInit */
+    HAL_DMA_DeInit(adcHandle->DMA_Handle);
+
+    /* ADC1 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(ADC_IRQn);
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
 
   /* USER CODE END ADC1_MspDeInit 1 */
@@ -126,5 +161,23 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+void testBenchTempCheck()
+{
+	//HAL_ADCEx_Calibration_Start(&hadc1);
+	HAL_ADC_Start(&hadc1);
+	uint16_t val = 0;
+	char str;
+
+	val = HAL_ADC_GetValue(&hadc1);
+
+	float voltage = (float)val/4096*3.3;
+	sprintf (str, "%d", val);
+	//HAL_UART_Transmit(&huart, (uint8_t)val, 1, 50);
+		}
+
+
+
+
 
 /* USER CODE END 1 */
