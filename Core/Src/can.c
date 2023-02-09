@@ -206,12 +206,14 @@ void readFCU_state()
 			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);  // replace with all fets on function call
 		}
 		else if(state[0] == 0)
+		{
 			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);  //replace with all fets off function call
 		}
 		else
+		{
 		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);  // replace with afe reset function call
-
-
+		}
+		}
 }
 
 
