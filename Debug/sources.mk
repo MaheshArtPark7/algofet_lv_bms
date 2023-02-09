@@ -21,7 +21,6 @@ C_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
-Core/CodeGen/can/source \
 Core/Lib/BQ76952 \
 Core/Src/App \
 Core/Src \

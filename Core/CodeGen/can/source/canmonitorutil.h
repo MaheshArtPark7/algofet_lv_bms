@@ -9,8 +9,8 @@ extern "C" {
 // declare here all availible checksum algorithms
 typedef enum
 {
-   XOR8 = 0,
-   XOR4 = 1,
+  // XOR8 = 0,
+  // XOR4 = 1,
   // etc
 } DbcCanCrcMethods;
 
