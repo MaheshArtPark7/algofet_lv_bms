@@ -22,7 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 
-
+int toggle;
 
 CAN_FilterTypeDef filterConfig;
 
@@ -36,6 +36,7 @@ CAN_RxHeaderTypeDef RxHeader;
 
 
 uint32_t mailbox;
+uint32_t id;
 
 int count = 0;
 
@@ -45,10 +46,50 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	//HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_13);
 }
 
+void rxHeaderDef()
+{
+	RxHeader.DLC = 8;
+	RxHeader.ExtId = 0;
+	RxHeader.IDE = CAN_ID_STD;
+	RxHeader.RTR = CAN_RTR_REMOTE;
+	RxHeader.StdId = 0x01;
+}
 
+void txHeaderDef()
+{
+	TxHeader.DLC = 8;
+	TxHeader.ExtId = 0;
+	TxHeader.IDE = CAN_ID_STD;
+	TxHeader.RTR = CAN_RTR_DATA;
+	TxHeader.StdId = 0x0;
+	TxHeader.TransmitGlobalTime = DISABLE;
+}
 
+void filterDef(int toggle)
+{
+	filterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	filterConfig.FilterActivation = ENABLE;
+	filterConfig.FilterBank = 2;
 
+	if(toggle == 0){
+		filterConfig.FilterIdHigh = 0x0000;
+		filterConfig.FilterIdLow = 0x0101;
+		filterConfig.FilterMaskIdLow = 0x1101;
+		filterConfig.FilterMaskIdHigh = 0x1111;
+	}
+	else if(toggle ==1){
+		filterConfig.FilterIdHigh = 0x001F;
+		filterConfig.FilterIdLow = 0xF000;
+		filterConfig.FilterMaskIdLow = 0xF000;
+		filterConfig.FilterMaskIdHigh = 0x111F;
+	}
 
+	filterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+	filterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+	filterConfig.SlaveStartFilterBank = 3;
+
+	HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
+}
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
@@ -81,6 +122,10 @@ void MX_CAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN1_Init 2 */
+
+  HAL_CAN_Start(&hcan1);
+  rxHeaderDef();
+  txHeaderDef();
 
   /* USER CODE END CAN1_Init 2 */
 
@@ -154,71 +199,51 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 }
 
 /* USER CODE BEGIN 1 */
-void writeCanBatVolt()
+void writeCanBatGaugeOverview()
 {
-	TxHeader.DLC = 8;
-	TxHeader.ExtId = 0;
-	TxHeader.IDE = CAN_ID_STD;
-	TxHeader.RTR = CAN_RTR_DATA;
-	TxHeader.StdId = 0x0;
-	TxHeader.TransmitGlobalTime = DISABLE;
-
-	HAL_CAN_Start(&hcan1);
 	uint32_t id = Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGauge, &canFrame);
 	if(id == 0x1ff810)
 	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
-
-
-
-
 }
+
+void writeCanBatGaugeV()
+{
+	uint32_t id = Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGauge, &canFrame);
+	if(id == 0x1ff810)
+	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
+}
+
 
 void readFCU_state()
 {
-	uint32_t id;
-	RxHeader.DLC = 8;
-	RxHeader.ExtId = 0;
-	RxHeader.IDE = CAN_ID_STD;
-	RxHeader.RTR = CAN_RTR_REMOTE;
-	RxHeader.StdId = 0x01;
-
-
-
-	filterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-	filterConfig.FilterActivation = ENABLE;
-	filterConfig.FilterBank = 2;
-	filterConfig.FilterIdHigh = 0x0000;
-	filterConfig.FilterIdLow = 0x0101;
-	filterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
-	filterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
-	filterConfig.SlaveStartFilterBank = 3;
-
-	HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
+	toggle = 0;
+	filterDef(toggle);
 
 	uint8_t state[8];
 	uint8_t dlc = 1;
-	HAL_CAN_Start(&hcan1);
 	if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK)
 		{
 		id = Unpack_FCU_STATE_REQUEST_can_codegen(&fcuState, &state, dlc);
-		if(state[0] == 0)
-		{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);  // replace with all fets on function call
-		}
-		else if(state[0] == 1)
-		{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);  //replace with all fets off function call
-		}
+		if(id = 0x101){
+			if(state[0] == 0)
+			{
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);  // replace with all fets on function call
+			}
+			else if(state[0] == 1)
+			{
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);  //replace with all fets off function call
+			}
 
-		else if(state[0] == 2)
-		{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);  // replace with afe reset function call
-		}
-		else if(state[0] == 3)
-		{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+			else if(state[0] == 2)
+			{
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);  // replace with afe reset function call
+			}
+			else if(state[0] == 3)
+			{
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+			}
 		}
 		}
 }

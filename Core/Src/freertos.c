@@ -172,7 +172,8 @@ void app_task_10hz(void const * argument)
     /* Infinite loop */
     for (;;)
     {
-    writeCanBatVolt();  //writing battery voltage from mcu to CAN line
+    writeCanBatGaugeOverview();
+    writeCanBatGaugeV();	//writing battery voltage from mcu to CAN line
     testBenchTempCheck();  //checking FET temperature using NTC
     vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
