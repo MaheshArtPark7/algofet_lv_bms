@@ -201,17 +201,24 @@ void readFCU_state()
 	if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK)
 		{
 		id = Unpack_FCU_STATE_REQUEST_can_codegen(&fcuState, &state, dlc);
-		if(state[0] == 1)
+		if(state[0] == 0)
 		{
 			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);  // replace with all fets on function call
 		}
-		else if(state[0] == 0)
+		else if(state[0] == 1)
 		{
 			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);  //replace with all fets off function call
 		}
-		else
+
+		else if(state[0] == 2)
 		{
-		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);  // replace with afe reset function call
+			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);  // replace with afe reset function call
+		}
+		else if(state[0] == 3)
+		{
+			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
 		}
 		}
 }
