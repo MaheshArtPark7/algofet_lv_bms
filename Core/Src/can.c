@@ -106,7 +106,6 @@ void SetFilterConfig(int toggle)
 
 	HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
 }
-
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
@@ -367,6 +366,14 @@ void readAfeBrickDVt()
 		id = Unpack_BAT_AFE_vBRICK_D_can_codegen(&batAfeBrickD, &state, 8);
 	}
 }
+
+void writeCanBatGaugeV()
+{
+	uint32_t id = Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGauge, &canFrame);
+	if(id == 0x1ff810)
+	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
+}
+
 
 void readFCU_state()
 {
