@@ -367,14 +367,6 @@ void readAfeBrickDVt()
 	}
 }
 
-void writeCanBatGaugeV()
-{
-	uint32_t id = Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGauge, &canFrame);
-	if(id == 0x1ff810)
-	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
-}
-
-
 void readFCU_state()
 {
 	toggle = 4;
