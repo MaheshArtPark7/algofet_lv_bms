@@ -19,14 +19,14 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "adc.h"
+#include "math.h"
 
 /* USER CODE BEGIN 0 */
 int res = 0;
-
 #define NTC_UP_R 10000.0f
-#define A 0.0007334731592130968f
-#define B 0.0002779985616647887f
-#define C 7.74576686768211e-8
+#define A 0.0007964229137422006f
+#define B 0.000267732904128058
+#define C 1.1734340157849885e-7
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -170,9 +170,10 @@ void testBenchTempCheck()
 	char str;
 
 	val = HAL_ADC_GetValue(&hadc1);
-
-	float voltage = (float)val/4096*3.3;
-	sprintf (str, "%d", val);
+	float voltage = (float)val/4096*5;
+	float ntcRes = ((voltage*10)/(5-voltage))*1000;
+	int temp = 1 / (A + B * log(ntcRes) + C * log(ntcRes) * log(ntcRes) * log(ntcRes));
+	sprintf (str, "%d", temp);
 	//HAL_UART_Transmit(&huart, (uint8_t)val, 1, 50);
 		}
 
