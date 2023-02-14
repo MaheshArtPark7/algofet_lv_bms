@@ -173,6 +173,14 @@ void testBenchTempCheck()
 	float voltage = (float)val/4096*5;
 	float ntcRes = ((voltage*10)/(5-voltage))*1000;
 	int temp = 1 / (A + B * log(ntcRes) + C * log(ntcRes) * log(ntcRes) * log(ntcRes));
+	if(20<temp<65)
+	{
+		//FET's stay on
+	}
+	else
+	{
+		//Fet's go off
+	}
 	sprintf (str, "%d", temp);
 	//HAL_UART_Transmit(&huart, (uint8_t)val, 1, 50);
 		}
