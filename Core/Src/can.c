@@ -22,33 +22,90 @@
 
 /* USER CODE BEGIN 0 */
 
-
-
 CAN_FilterTypeDef filterConfig;
 
 __CoderDbcCanFrame_t__ canFrame;
-BAT_GAUGE_OvrVIEW_t batGauge;
+
 FCU_STATE_REQUEST_t fcuState;
+BAT_BMS_OvrVIEW_t batBmsOvr;
+BAT_BMS_ExtTemp_t batBmsExtTemp;
+BAT_AFE_vBRICK_A_t batAfeBrickA;
+BAT_AFE_vBRICK_B_t batAfeBrickB;
+BAT_AFE_vBRICK_C_t batAfeBrickC;
+BAT_AFE_vBRICK_D_t batAfeBrickD;
+BAT_GAUGE_OvrVIEW_t batGaugeOvr;
+BAT_GAUGE_ViT_t batGaugeViT;
 
 CAN_TxHeaderTypeDef TxHeader;
 CAN_RxHeaderTypeDef RxHeader;
 
-
-
 uint32_t mailbox;
-
+int toggle;
 int count = 0;
-
+uint32_t id;
+uint8_t state[8];
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	//HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_13);
 }
 
+void TxHeaderGenerator()
+{
+	TxHeader.DLC = 8;
+	TxHeader.ExtId = 0;
+	TxHeader.IDE = CAN_ID_STD;
+	TxHeader.RTR = CAN_RTR_DATA;
+	TxHeader.StdId = 0x0;
+	TxHeader.TransmitGlobalTime = DISABLE;
+}
 
+void RxHeaderGenerator()
+{
+	RxHeader.DLC = 8;
+	RxHeader.ExtId = 0;
+	RxHeader.IDE = CAN_ID_STD;
+	RxHeader.RTR = CAN_RTR_REMOTE;
+	RxHeader.StdId = 0x01;
+}
 
+void SetFilterConfig(int toggle)
+{
+	filterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	filterConfig.FilterActivation = ENABLE;
+	filterConfig.FilterBank = 2;
+	switch (toggle) {
+		case 1: //BMS overview & Ext Temp
+			filterConfig.FilterIdLow = 0xF610;
+			filterConfig.FilterIdHigh = 0x001F;
+			filterConfig.FilterMaskIdLow = 0xF610;
+			filterConfig.FilterMaskIdHigh = 0x111F;
+			break;
+		case 2: //AFE v brick A-D
+			filterConfig.FilterIdLow = 0xF710;
+			filterConfig.FilterIdHigh = 0x001F;
+			filterConfig.FilterMaskIdLow = 0xF710;
+			filterConfig.FilterMaskIdHigh = 0x111F;
+			break;
+		case 3: //Gauge Overview & ViT
+			filterConfig.FilterIdLow = 0xF810;
+			filterConfig.FilterIdHigh = 0x001F;
+			filterConfig.FilterMaskIdLow = 0xF801;
+			filterConfig.FilterMaskIdHigh = 0x111F;
+			break;
+		case 4: //FCU state
+			filterConfig.FilterIdLow = 0x0101;
+			filterConfig.FilterIdHigh = 0x0000;
+			break;
+		default:
+			break;
+	}
+	filterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+	filterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+	filterConfig.SlaveStartFilterBank = 3;
 
-
+	HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
+}
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
@@ -81,6 +138,10 @@ void MX_CAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN1_Init 2 */
+
+  HAL_CAN_Start(&hcan1);
+  TxHeaderGenerator();
+  RxHeaderGenerator();
 
   /* USER CODE END CAN1_Init 2 */
 
@@ -154,65 +215,203 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 }
 
 /* USER CODE BEGIN 1 */
-void writeCanBatVolt()
+void writeCANBatGaugeOvr()
 {
-	TxHeader.DLC = 8;
-	TxHeader.ExtId = 0;
-	TxHeader.IDE = CAN_ID_STD;
-	TxHeader.RTR = CAN_RTR_DATA;
-	TxHeader.StdId = 0x0;
-	TxHeader.TransmitGlobalTime = DISABLE;
-
 	HAL_CAN_Start(&hcan1);
-	uint32_t id = Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGauge, &canFrame);
+	id = Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGaugeOvr, &canFrame);
 	if(id == 0x1ff810)
 	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
+}
 
+void writeCANBatGaugeViT()
+{
+	HAL_CAN_Start(&hcan1);
+	id = Pack_BAT_GAUGE_ViT_can_codegen(&batGaugeViT, &canFrame);
+	if(id == 0x1ff820)
+	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
+}
 
+void writeBMSOvr()
+{
+	HAL_CAN_Start(&hcan1);
+	id = Pack_BAT_BMS_OvrVIEW_can_codegen(&batBmsOvr, &canFrame);
+	if(id == 0x1ff610)
+	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
+}
 
+void writeBMSExtTemp()
+{
+	HAL_CAN_Start(&hcan1);
+	id = Pack_BAT_BMS_ExtTemp_can_codegen(&batBmsExtTemp, &canFrame);
+	if(id == 0x1ff611)
+	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
+}
 
+void writeAfeBrickAVt()
+{
+	HAL_CAN_Start(&hcan1);
+	id = Pack_BAT_AFE_vBRICK_A_can_codegen(&batAfeBrickA, &canFrame);
+	if(id == 0x1ff710)
+	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
+}
+
+void writeAfeBrickBVt()
+{
+	HAL_CAN_Start(&hcan1);
+	id = Pack_BAT_AFE_vBRICK_B_can_codegen(&batAfeBrickB, &canFrame);
+	if(id == 0x1ff711)
+	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
+}
+
+void writeAfeBrickCVt()
+{
+	HAL_CAN_Start(&hcan1);
+	id = Pack_BAT_AFE_vBRICK_C_can_codegen(&batAfeBrickC, &canFrame);
+	if(id == 0x1ff712)
+	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
+}
+
+void writeAfeBrickDVt()
+{
+	HAL_CAN_Start(&hcan1);
+	id = Pack_BAT_AFE_vBRICK_D_can_codegen(&batAfeBrickD, &canFrame);
+	if(id == 0x1ff713)
+	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
+}
+
+void readCANBatGaugeOvr()
+{
+	toggle = 3;
+	SetFilterConfig(toggle);
+
+	if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK)
+	{
+		id = Unpack_BAT_GAUGE_OvrVIEW_can_codegen(&batGaugeOvr, &state, 4);
+	}
+}
+
+void readCANBatGaugeVit()
+{
+	toggle = 3;
+	SetFilterConfig(toggle);
+
+	if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK)
+	{
+		id  = Unpack_BAT_GAUGE_ViT_can_codegen(&batGaugeViT, &state, 6);
+	}
+}
+
+void readBMSOvr()
+{
+	toggle = 1;
+	SetFilterConfig(toggle);
+
+	if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK);
+	{
+		id = Unpack_BAT_BMS_OvrVIEW_can_codegen(&batBmsOvr, &state, 2);
+	}
+}
+
+void readBMSExtTemp()
+{
+	toggle = 1;
+	SetFilterConfig(toggle);
+
+	if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK)
+	{
+		id = Unpack_BAT_BMS_ExtTemp_can_codegen(&batBmsExtTemp, &state, 4);
+	}
+}
+
+void readAfeBrickAVt()
+{
+	toggle = 2;
+	SetFilterConfig(toggle);
+
+	if(HAL_CAN_GetRxMessage(&hcan1,  CAN_RX_FIFO0, &RxHeader, state)== HAL_OK)
+	{
+		id = Unpack_BAT_AFE_vBRICK_A_can_codegen(&batAfeBrickA, &state, 8);
+	}
+}
+
+void readAfeBrickBVt()
+{
+	toggle = 2;
+	SetFilterConfig(toggle);
+
+	if(HAL_CAN_GetRxMessage(&hcan1,  CAN_RX_FIFO0, &RxHeader, state)== HAL_OK)
+	{
+		id = Unpack_BAT_AFE_vBRICK_B_can_codegen(&batAfeBrickB, &state, 8);
+	}
+}
+
+void readAfeBrickCVt()
+{
+	toggle = 2;
+	SetFilterConfig(toggle);
+
+	if(HAL_CAN_GetRxMessage(&hcan1,  CAN_RX_FIFO0, &RxHeader, state)== HAL_OK)
+	{
+		id = Unpack_BAT_AFE_vBRICK_C_can_codegen(&batAfeBrickC, &state, 8);
+	}
+}
+
+void readAfeBrickDVt()
+{
+	toggle = 2;
+	SetFilterConfig(toggle);
+
+	if(HAL_CAN_GetRxMessage(&hcan1,  CAN_RX_FIFO0, &RxHeader, state)== HAL_OK)
+	{
+		id = Unpack_BAT_AFE_vBRICK_D_can_codegen(&batAfeBrickD, &state, 8);
+	}
 }
 
 void readFCU_state()
 {
-	uint32_t id;
-	RxHeader.DLC = 8;
-	RxHeader.ExtId = 0;
-	RxHeader.IDE = CAN_ID_STD;
-	RxHeader.RTR = CAN_RTR_REMOTE;
-	RxHeader.StdId = 0x01;
+	toggle = 4;
+	SetFilterConfig(toggle);
 
-
-
-	filterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-	filterConfig.FilterActivation = ENABLE;
-	filterConfig.FilterBank = 2;
-	filterConfig.FilterIdHigh = 0x0000;
-	filterConfig.FilterIdLow = 0x0101;
-	filterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
-	filterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
-	filterConfig.SlaveStartFilterBank = 3;
-
-	HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
-
-	uint8_t state[8];
-	uint8_t dlc = 1;
-	HAL_CAN_Start(&hcan1);
 	if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK)
 		{
-		id = Unpack_FCU_STATE_REQUEST_can_codegen(&fcuState, &state, dlc);
-		if(state[0] == 1)
-		{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);  // replace with all fets on function call
+		id = Unpack_FCU_STATE_REQUEST_can_codegen(&fcuState, &state, 1);
+		switch (state[0]) {
+			case 0:
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);  // replace with all fets on function call
+				break;
+			case 1:
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);  //replace with all fets off function call
+				break;
+			case 2:
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);  // replace with afe reset function call
+				break;
+			case 3:
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+				break;
+			default:
+				break;
 		}
-		else if(state[0] == 0)
-		{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);  //replace with all fets off function call
-		}
-		else
-		{
-		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);  // replace with afe reset function call
-		}
+//		if(state[0] == 0)
+//		{
+//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);  // replace with all fets on function call
+//		}
+//		else if(state[0] == 1)
+//		{
+//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);  //replace with all fets off function call
+//		}
+//
+//		else if(state[0] == 2)
+//		{
+//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);  // replace with afe reset function call
+//		}
+//		else if(state[0] == 3)
+//		{
+//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
+//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
+//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+//		}
 		}
 }
 
