@@ -9,6 +9,10 @@
 #include "bq76952.h"
 #include "main.h"
 
+
+TS_FETcotrol_s bq67952_fetcontrol;
+TS_AFEdata_s bq67952_afeInfo;
+
 int16_t app_afe_init(void)
 {
 	int16_t ret_val = SYS_ERR;
