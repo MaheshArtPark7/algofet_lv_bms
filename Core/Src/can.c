@@ -203,15 +203,15 @@ void readFCU_state()
 		id = Unpack_FCU_STATE_REQUEST_can_codegen(&fcuState, &state, dlc);
 		if(state[0] == 1)
 		{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);  // replace with all fets on function call
+			bq76952_FETs_ON();  // replace with all fets on function call
 		}
 		else if(state[0] == 0)
 		{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);  //replace with all fets off function call
+			bq76952_FETs_OFF(); //replace with all fets off function call
 		}
 		else
 		{
-		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);  // replace with afe reset function call
+			bq76952_AFE_reset();  // replace with afe reset function call
 		}
 		}
 }
