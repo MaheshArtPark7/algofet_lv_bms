@@ -22,7 +22,7 @@ uint16_t Stack_Voltage = 0x00;
 uint16_t Pack_Voltage = 0x00;
 uint16_t Load_Voltage = 0x00;
 uint16_t Pack_Current = 0x00;
-uint16_t device_number = 0; //fixme
+uint16_t device_number = 0;
 uint16_t pack_current[2] = {0};
 uint16_t stack_Voltage[2] = {0};
 uint16_t Temperature[2] = {0};
@@ -304,7 +304,7 @@ static int16_t bq76952_FETs_ReadStatus(void)
 //FET Control call
 extern int16_t bq76952_FETs_call(void)
 {
-  device_number = bq76952_get_device_number(&device_number);
+  //device_number = bq76952_get_device_number(&device_number);
   //For calling all FET Commands
   //bq76952_readAllTemp();
   //stack_Voltage[0] = bq76952_stack_Voltage(&stack_Voltage);
@@ -316,12 +316,12 @@ extern int16_t bq76952_FETs_call(void)
   //HAL_Delay(100);
   //bq76952_init();
   //HAL_Delay(100);
-  //bq76952_FETs_enable();
-  //HAL_Delay(100);
+  bq76952_FETs_enable();
+  HAL_Delay(100);
   //bq76952_FETs_Control();
   //HAL_Delay(100);
-  //bq76952_FETs_on();
-  //HAL_Delay(100);
+  bq76952_FETs_ON();
+  HAL_Delay(100);
   //bq76952_FETs_off();
   //HAL_Delay(100);
   //bq76952_dischargeOFF();
