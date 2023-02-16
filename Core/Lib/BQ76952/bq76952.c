@@ -22,14 +22,10 @@ uint16_t Stack_Voltage = 0x00;
 uint16_t Pack_Voltage = 0x00;
 uint16_t Load_Voltage = 0x00;
 uint16_t Pack_Current = 0x00;
-<<<<<<< Updated upstream
-uint16_t device_number = 0;
-=======
 uint16_t device_number = 0; //fixme
 uint16_t pack_current[2] = {0};
 uint16_t stack_Voltage[2] = {0};
 uint16_t Temperature[2] = {0};
->>>>>>> Stashed changes
 
 uint8_t FET_Status;  // FET Status register contents  - Shows states of FETs
 uint16_t CB_ActiveCells;  // Cell Balancing Active Cells
@@ -92,12 +88,9 @@ int16_t bq76952_init(void)
   int16_t ret_val = SYS_ERR;
   do
   {
-<<<<<<< Updated upstream
     //uint16_t device_number = 0; //fixme
     uint16_t pack_current[2] = {0};
     uint16_t temp[2] = {0};
-=======
->>>>>>> Stashed changes
     TsBmsPower_cfg_t.power_cfg_reg = PowerConfig;
     TsBmsPower_cfg_t.reg_val = 0x2D80;
     TsBmsPower_cfg_t.len = 4;
@@ -151,12 +144,7 @@ int16_t bq76952_init(void)
     //SCDThreshold --> 0x02				#40mV across 1mohm, i.e, 40A. Refer to TRM page 168
     //SCDDelay --> 0x03					#30us. Enabled with a delay of (value - 1) * 15 us; min value of 1
     //SCDLLatchLimit --> 0x01			#Only with load removal. Refer to TRM page 170
-<<<<<<< Updated upstream
     //OTC, OTD, OTF      #TO BE ADDED
-=======
-    //
-
->>>>>>> Stashed changes
     ret_val = SYS_OK;
   } while(false);
 
@@ -318,17 +306,12 @@ extern int16_t bq76952_FETs_call(void)
 {
   device_number = bq76952_get_device_number(&device_number);
   //For calling all FET Commands
-<<<<<<< Updated upstream
-  //bq76952_AFE_reset();
-  //HAL_Delay(100);
-=======
   //bq76952_readAllTemp();
   //stack_Voltage[0] = bq76952_stack_Voltage(&stack_Voltage);
   //pack_current[0] = bq76952_ReadCurrent(&pack_current);
   //device_number = bq76952_get_device_number(&device_number);
   bq76952_AFE_reset();
   HAL_Delay(100);
->>>>>>> Stashed changes
   //bq76952_FETs_SleepDisable();
   //HAL_Delay(100);
   //bq76952_init();
