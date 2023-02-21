@@ -279,6 +279,7 @@ extern int16_t bq76952_Charge(void)
   //to take the BMS to charging mode
   bq76952_FETs_enable();
   bq76952_allFETs_on();
+  HAL_Delay(50);
   bq76952_dischargeOFF();
 }
 
@@ -287,6 +288,7 @@ extern int16_t bq76952_Discharge(void)
   //to take the BMS to charging mode
   bq76952_FETs_enable();
   bq76952_allFETs_on();
+  HAL_Delay(50);
   bq76952_chargeOFF();
 }
 
