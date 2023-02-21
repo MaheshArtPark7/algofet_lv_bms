@@ -29,9 +29,8 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-// FIXME: remove the absolute path - diwij
-#include "dbccodeconf.h"
-#include "can_codegen.h"
+#include "../CodeGen/can/source/dbccodeconf.h"
+#include "../CodeGen/can/source/can_codegen.h"
 /* USER CODE END Includes */
 
 extern CAN_HandleTypeDef hcan1;
