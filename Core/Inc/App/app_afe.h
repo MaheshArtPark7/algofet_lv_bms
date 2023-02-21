@@ -16,26 +16,11 @@ typedef struct
 
 typedef struct
 {
-    uint16_t Load_Voltage;
-    uint16_t Pack_Current;
-    uint8_t FET_Status;
-    uint16_t Cell1Voltage;
-    uint16_t Cell2Voltage;
-    uint16_t Cell3Voltage;
-    uint16_t Cell4Voltage;
-    uint16_t Cell5Voltage;
-    uint16_t Cell6Voltage;
-    uint16_t Cell7Voltage;
-    uint16_t Cell8Voltage;
-    uint16_t Cell9Voltage;
-    uint16_t Cell10Voltage;
-    uint16_t Cell11Voltage;
-    uint16_t Cell12Voltage;
-    uint16_t Cell13Voltage;
-    uint16_t Cell14Voltage;
-    uint16_t Cell15Voltage;
-    uint16_t Cell16Voltage;
-    //Add TS1,TS2, TS3
+    uint16_t Load_Voltage;        //Stores load Voltage
+    uint16_t Pack_Current;        //Stores Pack Current
+    uint8_t FET_Status;           //Stores FET Status
+    uint16_t CellVoltages;        //Stores Cell Voltages (1-10)
+    uint16_t Temperatures;        //Stores Temperatures TS1 and TS3
 
 }TS_AFEdata_s;
 
