@@ -21,6 +21,7 @@
 #define SPI_DIR_CMD_FRAME_LEN 3
 #define READ_DIR_CMD_BUFF_LEN 2
 
+
 #define SUB_CMD_REG_LSB_ADDR (uint8_t)0x3Eu       // 0x3E + R/W bit(1: write)
 #define SUB_CMD_REG_MSB_ADDR (uint8_t)0x3Fu       // 0x3F + R/W bit(1: write)
 #define SUB_CMD_DATA_BUFF_ADDR (uint8_t)0x40u     // 0x40 + R/W bit(0: read)
@@ -28,9 +29,6 @@
 #define SUB_CMD_Wr_CHKSUM_MSB_ADDR (uint8_t)0xC1u // 0x61 + R/W bit(1: write)
 
 #define SUB_CMD_DATA_BUFF_LEN_MAX 32 // 32 Bytes
-#define DIR_CMD_DATA_BUFF_LEN_MAX 8 // 8 Bytes
-#define R 0 // Read; Used in DirectCommands and Subcommands functions
-#define W 1 // Write; Used in DirectCommands and Subcommands functions
 
 //------------------------------------------------------------------------------
 // Direct Commands
@@ -137,7 +135,6 @@
 
 //------------------------------------------------------------------------------
 // Subcommands with Data
-#define FETs_CONTROL 0X0000
 #define DEVICE_NUMBER 0x0001
 #define FW_VERSION 0x0002
 #define HW_VERSION 0x0003

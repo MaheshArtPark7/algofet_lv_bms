@@ -151,9 +151,7 @@ void app_task_1Hz(void const * argument)
     for (;;)
     {
         //app_gauge_tick();
-
-     vTaskDelayUntil(&xLastWakeTime, xFrequency);
-
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
   /* USER CODE END app_task_1Hz */
 }
@@ -171,17 +169,13 @@ void app_task_10hz(void const * argument)
     TickType_t xLastWakeTime;
     const TickType_t xFrequency = 100;
     xLastWakeTime = xTaskGetTickCount();
-
-    bq76952_FETs_call();  //Calls the FET Commands
     /* Infinite loop */
     for (;;)
-    {
-    
+    {    
     //led_blink();
     writeCanBatVolt();  //writing battery voltage from mcu to CAN line
     testBenchTempCheck();  //checking FET temperature using NTC
     vTaskDelayUntil(&xLastWakeTime, xFrequency);
-
     }
   /* USER CODE END app_task_10hz */
 }
@@ -203,9 +197,9 @@ void app_task_100hz(void const * argument)
     for (;;)
     {
         // Battery State Machine
+
        readFCU_state();  //Getting FCU state over CAN line to control FET operations.
        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-
     }
   /* USER CODE END app_task_100hz */
 }

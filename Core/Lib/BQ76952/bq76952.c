@@ -45,16 +45,23 @@ static int16_t bq76952_write_to_ram_register(uint8_t reg_address, uint8_t *pdata
 static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint16_t subCmd);
 static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint16_t *p_data, uint8_t len);
 
-//Subcommands and Command-Only Subcommands Declaration
+static int16_t bq76952_dir_cmd_access(uint8_t dir_cmd, bool read_write, uint8_t data_len, uint8_t *p_data);
+static int16_t bq76952_write_to_register(uint8_t reg_address, uint8_t *pdata, uint8_t len);
+static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint8_t subCmd);
+static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint8_t *p_data, uint8_t len);
+static int16_t bq76952_afe_reset(void);
 static int16_t bq76952_set_powercfg(TsBmsPower_cfg *pTsBmsPower_cfg_t);
 static int16_t bq76952_get_device_number(uint16_t *pDev_num);
 static int16_t bq76952_set_config_update(void);
+
 extern int16_t bq76952_AFE_reset(void);
+
 static int16_t bq76952_config(void);
 static int16_t bq76952_enter_config_update(void);
 static int16_t bq76952_settings_pwr_cfg(void);
 static int16_t bq76952_settings_reg0_cfg(void);
 static int16_t bq76952_settings_reg12_cfg(void);
+
 
 //FET Control Functions Declaration
 static int16_t bq76952_FETs_Control(void);
@@ -80,11 +87,13 @@ static int16_t bq76952_readAllVoltages();
 static int16_t bq76952_ReadCurrent(uint16_t *Pack_Current[2]);
 static float bq76952_ReadTemp(uint16_t *Temperature[2], uint8_t cmd);
 extern int16_t bq76952_readAllTemp(void);
+
 //------------------------------------------------------------------------------
 // Static Functions definition
 
 int16_t bq76952_init(void)
 {
+
   int16_t ret_val = SYS_ERR;
   do
   {
@@ -148,8 +157,10 @@ int16_t bq76952_init(void)
     ret_val = SYS_OK;
   } while(false);
 
+
   return ret_val;
 }
+
 
 //------------------------------------------------------------------------------
 // FET CONTROL COMMANDS
@@ -341,6 +352,7 @@ extern int16_t bq76952_AFE_reset(void)
   do
   {
     if(SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, RESET))
+
     {
       break;
     }
@@ -363,6 +375,7 @@ static int16_t bq76952_set_powercfg(TsBmsPower_cfg *pTsBmsPower_cfg_t)
   } while(false);
   ret_val = SYS_OK;
   return ret_val;
+
 }
 
 static int16_t bq76952_get_device_number(uint16_t *pDev_num)
@@ -373,6 +386,7 @@ static int16_t bq76952_get_device_number(uint16_t *pDev_num)
   do
   {
     if(SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, DEVICE_NUMBER))
+
     {
       break;
     }
@@ -383,7 +397,6 @@ static int16_t bq76952_get_device_number(uint16_t *pDev_num)
     }
   } while(false);
   ret_val = SYS_OK;
-
   return pDev_num;
 }
 
@@ -465,8 +478,6 @@ extern int16_t bq76952_readAllTemp(void)
      HAL_Delay(50);
 }
 
-
-
 static int16_t bq76952_set_config_update(void)
 {
   int16_t ret_val = SYS_ERR;
@@ -532,6 +543,7 @@ static int16_t bq76952_write_to_ram_register(uint8_t reg_address, uint8_t *pdata
   return ret_val;
 }
 
+
 static uint8_t get_crc8(uint8_t *pData, uint8_t len)
 {
   uint8_t crc = 0xff;
@@ -549,6 +561,7 @@ static uint8_t get_crc8(uint8_t *pData, uint8_t len)
   }
   return crc;
 }
+
 
 static uint8_t CRC8(uint8_t *ptr, uint8_t len)
 //Calculates CRC8 for passed bytes.
@@ -573,12 +586,10 @@ static uint8_t CRC8(uint8_t *ptr, uint8_t len)
     ptr++;
   }
   return (crc);
+
 }
 
-//-----------------------------------------------------------------------------------------------------------------------------
-// READ/WRITE FUNCTIONS FOR DIRECT COMMANDS and SUBCOMMANDS
-
-static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint16_t subCmd)
+static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint8_t subCmd)
 {
   //To write data to subcommand address register (0x3E)
   uint8_t subCmdRegAddrWRITE = subCmdRegAddr | 0x80u; //Changes the leftmost bit to 1 since W Operation
@@ -661,6 +672,7 @@ static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint16_t 
         ret_val = SYS_ERR;
         break;
       }
+
     }
     p_data= (RX_DATA[1] << 8) | RX_DATA[0];
   } while(false);
@@ -754,4 +766,5 @@ static int16_t bq76952_dir_cmd_read(uint8_t dirCmdRegAddr, uint16_t *p_data[2], 
   } while(false);
   return ret_val;
 }
+
 
