@@ -171,9 +171,8 @@ void app_task_10hz(void const * argument)
     xLastWakeTime = xTaskGetTickCount();
     /* Infinite loop */
     for (;;)
-    {    
-    //led_blink();
-    writeCanBatVolt();  //writing battery voltage from mcu to CAN line
+    {
+    writeCANBatGaugeOvr();  //writing battery voltage from mcu to CAN line
     testBenchTempCheck();  //checking FET temperature using NTC
     vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
