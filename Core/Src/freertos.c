@@ -88,6 +88,10 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackTyp
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
+	QueueHandle_t Queue1;
+	Queue1 = xQueueCreate(10, sizeof( struct canFrame*)); //to be used to queue the messages being sent on CAN line
+														  //only 3 messages can be transmitted at once at the hardware level.
+
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -150,8 +154,7 @@ void app_task_1Hz(void const * argument)
     /* Infinite loop */
     for (;;)
     {
-        //app_gauge_tick();
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+    	vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
   /* USER CODE END app_task_1Hz */
 }
@@ -167,13 +170,30 @@ void app_task_10hz(void const * argument)
 {
   /* USER CODE BEGIN app_task_10hz */
     TickType_t xLastWakeTime;
+    uint16_t counter = 0;
     const TickType_t xFrequency = 100;
     xLastWakeTime = xTaskGetTickCount();
     /* Infinite loop */
     for (;;)
     {
-    writeCANBatGaugeOvr();  //writing battery voltage from mcu to CAN line
-    testBenchTempCheck();  //checking FET temperature using NTC
+    if(counter%10 == 0)
+    {
+    	writeAfeBrickAVt();
+    	writeAfeBrickBVt();
+    	writeAfeBrickCVt();
+    }
+    if(counter%10 == 1)
+    {
+    	writeAfeBrickDVt();
+		writeBMSExtTemp();
+		writeCANBatGaugeOvr();
+    }
+    if(counter%5==0)
+    	readFCU_state();
+
+    counter++;
+    writeCANBatGaugeViT();
+    writeBMSOvr();
     vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
   /* USER CODE END app_task_10hz */
@@ -195,9 +215,6 @@ void app_task_100hz(void const * argument)
     /* Infinite loop */
     for (;;)
     {
-        // Battery State Machine
-
-       readFCU_state();  //Getting FCU state over CAN line to control FET operations.
        vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
   /* USER CODE END app_task_100hz */
