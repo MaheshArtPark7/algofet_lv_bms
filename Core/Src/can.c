@@ -56,7 +56,7 @@ void TxHeaderGenerator()
 	TxHeader.ExtId = 0;
 	TxHeader.IDE = CAN_ID_STD;
 	TxHeader.RTR = CAN_RTR_DATA;
-	TxHeader.StdId = 0x0;
+	TxHeader.StdId = 0x001;
 	TxHeader.TransmitGlobalTime = DISABLE;
 }
 
@@ -69,7 +69,7 @@ void RxHeaderGenerator()
 	RxHeader.StdId = 0x01;
 }
 
-void SetFilterConfig(int toggle)
+/*void SetFilterConfig(int toggle)
 {
 	filterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
 	filterConfig.FilterActivation = ENABLE;
@@ -100,6 +100,22 @@ void SetFilterConfig(int toggle)
 		default:
 			break;
 	}
+	filterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+	filterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+	filterConfig.SlaveStartFilterBank = 3;
+
+	HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
+}*/
+
+void SetFilterConfig()
+{
+	filterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	filterConfig.FilterActivation = ENABLE;
+	filterConfig.FilterBank = 2;
+	filterConfig.FilterIdLow = 0x0101;
+	filterConfig.FilterIdHigh = 0x0000;
+	filterConfig.FilterMaskIdLow = 0x1101;
+	filterConfig.FilterMaskIdHigh = 0x1111;
 	filterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
 	filterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
 	filterConfig.SlaveStartFilterBank = 3;
@@ -279,7 +295,9 @@ void writeAfeBrickDVt()
 	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, canFrame.Data, &mailbox);
 }
 
-void readCANBatGaugeOvr()
+//reading Fuel Gauge Data over CAN
+
+/*void readCANBatGaugeOvr()
 {
 	toggle = 3;
 	SetFilterConfig(toggle);
@@ -299,9 +317,11 @@ void readCANBatGaugeVit()
 	{
 		id  = Unpack_BAT_GAUGE_ViT_can_codegen(&batGaugeViT, &state, 6);
 	}
-}
+}*/
 
-void readBMSOvr()
+// Reading BMS related info on CAN
+
+/*void readBMSOvr()
 {
 	toggle = 1;
 	SetFilterConfig(toggle);
@@ -321,9 +341,11 @@ void readBMSExtTemp()
 	{
 		id = Unpack_BAT_BMS_ExtTemp_can_codegen(&batBmsExtTemp, &state, 4);
 	}
-}
+}*/
 
-void readAfeBrickAVt()
+// reading AFE brick voltages over CAN
+
+/*void readAfeBrickAVt()
 {
 	toggle = 2;
 	SetFilterConfig(toggle);
@@ -365,13 +387,13 @@ void readAfeBrickDVt()
 	{
 		id = Unpack_BAT_AFE_vBRICK_D_can_codegen(&batAfeBrickD, &state, 8);
 	}
-}
+}*/
 
 void readFCU_state()
 {
-	toggle = 4;
-	SetFilterConfig(toggle);
-
+	//toggle = 4;
+	//SetFilterConfig(toggle); //to be uncommented if reading other data as well apart from FCU State
+	SetFilterConfig(); //to be commented out if reading other data as well apart from FCU state.
 	if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK)
 		{
 		id = Unpack_FCU_STATE_REQUEST_can_codegen(&fcuState, &state, 1);
@@ -393,25 +415,6 @@ void readFCU_state()
 			default:
 				break;
 		}
-//		if(state[0] == 0)
-//		{
-//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);  // replace with all fets on function call
-//		}
-//		else if(state[0] == 1)
-//		{
-//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);  //replace with all fets off function call
-//		}
-//
-//		else if(state[0] == 2)
-//		{
-//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);  // replace with afe reset function call
-//		}
-//		else if(state[0] == 3)
-//		{
-//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
-//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
-//			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
-//		}
 		}
 }
 
