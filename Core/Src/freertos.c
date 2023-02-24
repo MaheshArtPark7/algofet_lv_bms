@@ -19,9 +19,12 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
+#include "queue.h"
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "dbccodeconf.h"
+#include "can.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -45,6 +48,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+struct CanFrame recievedData;
 
 /* USER CODE END Variables */
 osThreadId APP_1HZ_TASKHandle;
@@ -88,11 +92,7 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackTyp
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
-	QueueHandle_t Queue1;
-	Queue1 = xQueueCreate(10, sizeof( struct canFrame*)); //to be used to queue the messages being sent on CAN line
-														  //only 3 messages can be transmitted at once at the hardware level.
-
-  /* USER CODE END Init */
+	/* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
@@ -154,6 +154,12 @@ void app_task_1Hz(void const * argument)
     /* Infinite loop */
     for (;;)
     {
+    	writeAfeBrickAVt();
+    	writeAfeBrickBVt();
+    	writeAfeBrickCVt();
+    	writeAfeBrickDVt();
+		writeBMSExtTemp();
+		writeCANBatGaugeOvr();
     	vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
   /* USER CODE END app_task_1Hz */
@@ -176,21 +182,8 @@ void app_task_10hz(void const * argument)
     /* Infinite loop */
     for (;;)
     {
-    if(counter%10 == 0)
-    {
-    	writeAfeBrickAVt();
-    	writeAfeBrickBVt();
-    	writeAfeBrickCVt();
-    }
-    if(counter%10 == 1)
-    {
-    	writeAfeBrickDVt();
-		writeBMSExtTemp();
-		writeCANBatGaugeOvr();
-    }
     if(counter%5==0)
     	readFCU_state();
-
     counter++;
     writeCANBatGaugeViT();
     writeBMSOvr();
@@ -215,7 +208,8 @@ void app_task_100hz(void const * argument)
     /* Infinite loop */
     for (;;)
     {
-       vTaskDelayUntil(&xLastWakeTime, xFrequency);
+    	QueueEmpty();
+    	vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
   /* USER CODE END app_task_100hz */
 }
