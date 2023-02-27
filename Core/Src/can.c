@@ -19,18 +19,13 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
-#include "FreeRTOS.h"
-#include "queue.h"
 
 /* USER CODE BEGIN 0 */
 
-#define uxQueueLength 10
-#define uxItemSize sizeof(struct CanFrame*)
-
 CAN_FilterTypeDef filterConfig;
-QueueHandle_t xQueue1;
+
 __CoderDbcCanFrame_t__ canFrame;
-struct CanFrame *ReceivedFrame;
+struct __CoderDbcCanFrame_t__ *frame;
 
 // structure objects
 FCU_STATE_REQUEST_t fcuState;
@@ -58,35 +53,10 @@ CAN_RxHeaderTypeDef RxHeader;
 uint32_t mailboxAFE;
 uint32_t mailboxFuelGauge;
 uint32_t mailboxBMS;
-
 int toggle;
 int count = 0;
 uint32_t id;
 uint8_t state[8];
-
-void CreateQueue()
-{
-xQueue1 = xQueueCreate(uxQueueLength, uxItemSize);
-if(xQueue1 == NULL)
-{
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-}
-}
-
-void QueueEmpty()
-{
-	if( xQueueReceive( xQueue1, &ReceivedFrame, 0 ) == pdPASS )
-	{
-		HAL_CAN_AddTxMessage(&hcan1, &TxBrickAViT, ReceivedFrame->Data, &mailboxAFE);
-		HAL_CAN_AddTxMessage(&hcan1, &TxBrickBViT, ReceivedFrame->Data, &mailboxAFE);
-		HAL_CAN_AddTxMessage(&hcan1, &TxBrickCViT, ReceivedFrame->Data, &mailboxAFE);
-		HAL_CAN_AddTxMessage(&hcan1, &TxBrickDViT, ReceivedFrame->Data, &mailboxAFE);
-	}
-	else
-	{
-
-	}
-}
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
@@ -197,9 +167,6 @@ void SetFilterConfig()
 
 	HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
 }
-
-struct CanFrame *msgPointer;
-
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
@@ -235,14 +202,6 @@ void MX_CAN1_Init(void)
 
   HAL_CAN_Start(&hcan1);
   RxHeaderGenerator();
-  TxHeaderGeneratorBatGaugeOvr();
-  TxHeaderGeneratorBatGaugeViT();
-  TxHeaderGeneratorBatBmsOvr();
-  TxHeaderGeneratorBatBmsExtTemp();
-  TxHeaderGeneratorBatBrickAVit();
-  TxHeaderGeneratorBatBrickBVit();
-  TxHeaderGeneratorBatBrickCVit();
-  TxHeaderGeneratorBatBrickDVit();
 
   /* USER CODE END CAN1_Init 2 */
 
@@ -353,7 +312,7 @@ void writeAfeBrickAVt()
 	TxHeaderGeneratorBatBrickAVit();
 	id = Pack_BAT_AFE_vBRICK_A_can_codegen(&batAfeBrickA, &canFrame);
 	if(id == 0x1ff710)
-		xQueueSend(xQueue1,(void *)&msgPointer, (TickType_t)0);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBrickAViT, canFrame.Data, &mailboxAFE);
 }
 
 void writeAfeBrickBVt()
@@ -361,7 +320,7 @@ void writeAfeBrickBVt()
 	TxHeaderGeneratorBatBrickBVit();
 	id = Pack_BAT_AFE_vBRICK_B_can_codegen(&batAfeBrickB, &canFrame);
 	if(id == 0x1ff711)
-		xQueueSend(xQueue1,(void *)&msgPointer, (TickType_t)0);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBrickBViT, canFrame.Data, &mailboxAFE);
 }
 
 void writeAfeBrickCVt()
@@ -369,7 +328,7 @@ void writeAfeBrickCVt()
 	TxHeaderGeneratorBatBrickCVit();
 	id = Pack_BAT_AFE_vBRICK_C_can_codegen(&batAfeBrickC, &canFrame);
 	if(id == 0x1ff712)
-		xQueueSend(xQueue1,(void *)&msgPointer, (TickType_t)0);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBrickCViT, canFrame.Data, &mailboxAFE);
 }
 
 void writeAfeBrickDVt()
@@ -377,7 +336,7 @@ void writeAfeBrickDVt()
 	TxHeaderGeneratorBatBrickDVit();
 	id = Pack_BAT_AFE_vBRICK_D_can_codegen(&batAfeBrickD, &canFrame);
 	if(id == 0x1ff713)
-		xQueueSend(xQueue1,(void *)&msgPointer, (TickType_t)0);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBrickDViT, canFrame.Data, &mailboxAFE);
 }
 
 void readFCU_state()

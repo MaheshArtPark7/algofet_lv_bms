@@ -9,7 +9,7 @@
 // when USE_CANSTRUCT enabled __CoderDbcCanFrame_t__ must be defined
 // #include "{header_with_can_struct}"
 // typedef {can_struct} __CoderDbcCanFrame_t__;
-typedef struct CanFrame
+typedef struct
 {
 	 uint32_t MsgId; //(CAN Frame message ID)
 	 uint8_t DLC; //(CAN Frame payload length field)
