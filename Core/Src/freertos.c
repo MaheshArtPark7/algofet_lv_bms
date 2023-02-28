@@ -172,7 +172,12 @@ void app_task_10hz(void const * argument)
     const TickType_t xFrequency = 100;
     xLastWakeTime = xTaskGetTickCount();
 
-    bq76952_FETs_call();  //Calls the FET Commands
+    //bq76952_readAllTemp();
+    bq76952_FETs_call();
+    HAL_Delay(50);
+    afe_data_read();
+    //bq76952_FETs_ON();
+    //bq76952_AFE_reset();
     /* Infinite loop */
     for (;;)
     {
