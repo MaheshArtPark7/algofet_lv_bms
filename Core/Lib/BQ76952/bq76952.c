@@ -13,19 +13,7 @@ extern SPI_HandleTypeDef hspi1;
 
 static TsBmsPower_cfg TsBmsPower_cfg_t;
 static TS_AFEramreg_s AFE_RAMwrite;
-//TS_AFEramreg_s bq67952_RAMwrite;
-// Global Variables for cell voltages, temperatures, Stack voltage, PACK Pin voltage, LD Pin voltage, CC2 current
 
-uint16_t CellVoltages[10] = {0};
-float ReadTemperature[2] = {0};
-float Stack_Voltage;
-float Pack_Current ;
-uint16_t device_number ;
-uint16_t Pack_Voltage;
-uint16_t Load_Voltage;
-
-//TS_AFEramreg_s bq67952_RAMwrite;
-uint8_t FET_Status;  // FET Status register contents  - Shows states of FETs
 uint16_t CB_ActiveCells;  // Cell Balancing Active Cells
 
 uint8_t LD_ON = 0;	// Load Detect status bit
