@@ -49,9 +49,9 @@ int16_t afe_data_read(void)
     AFE_info.Device_Number = AFE_data.device_number;
     AFE_info.Stack_Voltage = 0.01*(AFE_data.stack_vol);                     //Returns Stack Voltage in Volts (V)
     AFE_info.Pack_Voltage = 0.01*(AFE_data.pack_vol);                       //Returns Pack Voltage in Volts (V)
-    AFE_info.Pack_Current = 0.01*(AFE_data.pack_curr);                      //Returns Pack Current in Amperes (A)
-    AFE_info.Temperatures[0] = (float)(0.1*(AFE_data.temps[0]))-273.15;     //Returns TS1 in  Degree Celcius (C)
-    AFE_info.Temperatures[1] = (float)(0.1*(AFE_data.temps[1]))-273.15;     //Returns TS1 in Degree Celcius (C)
+    AFE_info.Pack_Current = (AFE_data.pack_curr);                      //Returns Pack Current in Amperes (A)
+    AFE_info.Temperatures[0] = (0.1*(AFE_data.temps[0]))-273.15;     //Returns TS1 in  Degree Celcius (C)
+    AFE_info.Temperatures[1] = (0.1*(AFE_data.temps[1]))-273.15;     //Returns TS1 in Degree Celcius (C)
     for(uint8_t i=0;i<10;i++)
     {
       AFE_info.CellVoltages[i] = 0.001*(AFE_data.cellvoltages[i]);          //Returns Cell Voltages in Volts (V)
