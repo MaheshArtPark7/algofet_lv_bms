@@ -923,4 +923,3 @@ extern int16_t bq76952_dir_cmd_read(uint8_t dirCmdRegAddr, uint16_t *pData, uint
   } while(false);
   return ret_val;
 }
-
