@@ -15,7 +15,6 @@ static TsBmsPower_cfg TsBmsPower_cfg_t;
 static TS_AFEramreg_s AFE_RAMwrite;
 
 uint16_t CB_ActiveCells;  // Cell Balancing Active Cells
-
 uint8_t LD_ON = 0;	// Load Detect status bit
 uint8_t DSG = 0;   // discharge FET state
 uint8_t CHG = 0;   // charge FET state
@@ -62,6 +61,7 @@ static int16_t bq76952_FETs_ReadStatus(void);
 
 //Direct Commands Declaration
 static int16_t bq76952_alarmEnable(uint16_t command);
+extern int16_t led_blink(void);
 
 //RAM Register Write Commands Declaration
 extern int16_t bq76952_vCellMode (void);
@@ -90,9 +90,9 @@ int16_t bq76952_init(void)
     AFE_RAMwrite.prechargeStopVoltage = 0x0AF0;   //2800mV
     AFE_RAMwrite.TS3config = 0x07;                //Default for TS3: 0X07 | Default for TS1: 0x07
 
-    bq76952_vCellMode();
-    bq76952_FETs_Control();
-    bq76952_TS3config();
+    //bq76952_vCellMode();
+    //bq76952_FETs_Control();
+    //bq76952_TS3config();
     //RESET #Resets the Bq769x2 Registers
     //bq76952_AFE_reset();
 
@@ -343,18 +343,29 @@ static int16_t bq76952_FETs_ReadStatus(void)
 extern int16_t bq76952_FETs_call(void)
 {
   //For calling all FET Commands
+  //bq76952_allFETs_on();
   //bq76952_readAllTemp();
   //bq76952_AFE_reset();
   //bq76952_FETs_SleepDisable();
   //bq76952_FETs_enable();
   //HAL_Delay(100);
-  bq76952_FETs_ON();
-  //bq76952_FETs_OFF();
+  //bq76952_FETs_ON();
+  bq76952_FETs_OFF();
   //bq76952_dischargeOFF();
   //bq76952_chargeOFF();
-  //bq76952_FETs_ReadStatus();
+  bq76952_FETs_ReadStatus();
 }
-
+extern int16_t led_blink(void)
+{
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, 1);
+  HAL_Delay(100);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, 0);
+  HAL_Delay(100);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, 1);
+  HAL_Delay(100);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, 0);
+  HAL_Delay(100);
+}
 //------------------------------------------------------------------------------------------------------------
 //AFE Functions
 extern int16_t bq76952_AFE_reset(void)
