@@ -51,6 +51,7 @@ typedef struct
 
 }TS_AFEdata_s;
 
+extern int16_t afe_data_read(void);
 extern int16_t app_afe_init(void);
 extern int16_t app_afe_tick(void);
 
