@@ -90,9 +90,9 @@ int16_t bq76952_init(void)
     AFE_RAMwrite.prechargeStopVoltage = 0x0AF0;   //2800mV
     AFE_RAMwrite.TS3config = 0x07;                //Default for TS3: 0X07 | Default for TS1: 0x07
 
-    //bq76952_vCellMode();
-    //bq76952_FETs_Control();
-    //bq76952_TS3config();
+    bq76952_vCellMode();
+    bq76952_FETs_Control();
+    bq76952_TS3config();
     //RESET #Resets the Bq769x2 Registers
     //bq76952_AFE_reset();
 
@@ -349,8 +349,8 @@ extern int16_t bq76952_FETs_call(void)
   //bq76952_FETs_SleepDisable();
   //bq76952_FETs_enable();
   //HAL_Delay(100);
-  //bq76952_FETs_ON();
-  bq76952_FETs_OFF();
+  bq76952_FETs_ON();
+  //bq76952_FETs_OFF();
   //bq76952_dischargeOFF();
   //bq76952_chargeOFF();
   bq76952_FETs_ReadStatus();

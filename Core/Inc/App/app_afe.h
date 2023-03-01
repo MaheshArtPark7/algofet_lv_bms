@@ -34,7 +34,7 @@ typedef struct
     float Load_Voltage;           //Stores Load Voltage
     float Pack_Current;           //Stores Pack Current
     float CellVoltages[10];    //Stores Cell Voltages (1-10)
-    uint16_t Temperatures[2];     //Stores Temperatures TS1 and TS3
+    float Temperatures[2];     //Stores Temperatures TS1 and TS3
 
 }TS_AFEinfo_s;
 
