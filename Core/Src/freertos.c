@@ -102,8 +102,7 @@ void MX_FREERTOS_Init(void) {
 	}
 
   /* USER CODE END Init */
-  /* Create the mutex(es) */
-  /* definition and creation of mutex_can_tx_queue */
+
   /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
