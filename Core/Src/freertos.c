@@ -25,7 +25,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "can.h"
+#include "can_codegen.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,6 +36,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+extern void(*func_ptrs[8])();
 
 /* USER CODE END PD */
 
@@ -46,16 +49,16 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
+uint32_t can_IDs[8] = {0x1ff610, 0x1ff611, 0x1ff710, 0x1ff711, 0x1ff712, 0x1ff713, 0x1ff810, 0x1ff820};
+
 /* USER CODE END Variables */
 osThreadId APP_1HZ_TASKHandle;
 osThreadId APP_10HZ_TASKHandle;
 osThreadId APP_100HZ_TASKHandle;
-osMessageQId can_tx_queueHandle;
-osMessageQId can_rx_queueHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-
+QueueHandle_t can_tx_queue,can_rx_queue;
 /* USER CODE END FunctionPrototypes */
 
 void app_task_1Hz(void const * argument);
@@ -88,32 +91,30 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackTyp
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
-	QueueHandle_t Queue1;
-	Queue1 = xQueueCreate(10, sizeof( struct canFrame*)); //to be used to queue the messages being sent on CAN line
-														  //only 3 messages can be transmitted at once at the hardware level.
+	can_tx_queue = xQueueCreate(10, sizeof(uint32_t)); //to be used to queue the messages being sent on CAN line
+													//only 3 messages can be transmitted at once at the hardware level.
+	can_rx_queue = xQueueCreate(10, sizeof(uint32_t));
+
+
+	if(can_tx_queue != NULL)
+	{
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+	}
 
   /* USER CODE END Init */
-
+  /* Create the mutex(es) */
+  /* definition and creation of mutex_can_tx_queue */
   /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
-    /* add semaphores, ... */
+	/* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
     /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
-
-  /* Create the queue(s) */
-  /* definition and creation of can_tx_queue */
-  osMessageQDef(can_tx_queue, 512, uint8_t);
-  can_tx_queueHandle = osMessageCreate(osMessageQ(can_tx_queue), NULL);
-
-  /* definition and creation of can_rx_queue */
-  osMessageQDef(can_rx_queue, 512, uint8_t);
-  can_rx_queueHandle = osMessageCreate(osMessageQ(can_rx_queue), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
     /* add queues, ... */
@@ -125,11 +126,11 @@ void MX_FREERTOS_Init(void) {
   APP_1HZ_TASKHandle = osThreadCreate(osThread(APP_1HZ_TASK), NULL);
 
   /* definition and creation of APP_10HZ_TASK */
-  osThreadDef(APP_10HZ_TASK, app_task_10hz, osPriorityAboveNormal, 0, 128);
+  osThreadDef(APP_10HZ_TASK, app_task_10hz, osPriorityNormal, 0, 128);
   APP_10HZ_TASKHandle = osThreadCreate(osThread(APP_10HZ_TASK), NULL);
 
   /* definition and creation of APP_100HZ_TASK */
-  osThreadDef(APP_100HZ_TASK, app_task_100hz, osPriorityHigh, 0, 128);
+  osThreadDef(APP_100HZ_TASK, app_task_100hz, osPriorityNormal, 0, 128);
   APP_100HZ_TASKHandle = osThreadCreate(osThread(APP_100HZ_TASK), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -154,8 +155,15 @@ void app_task_1Hz(void const * argument)
     /* Infinite loop */
     for (;;)
     {
+    	//xSemaphoreTake(can_task_semaphore_handle, 10);
+    	for(int i = 1;i<7;i++)
+    	{
+    		xQueueSend(can_tx_queue, &can_IDs[i], (TickType_t)10);
+    	}
     	vTaskDelayUntil(&xLastWakeTime, xFrequency);
+    	//xSemaphoreGive(can_task_semaphore_handle);
     }
+
   /* USER CODE END app_task_1Hz */
 }
 
@@ -176,26 +184,17 @@ void app_task_10hz(void const * argument)
     /* Infinite loop */
     for (;;)
     {
-    if(counter%10 == 0)
-    {
-    	writeAfeBrickAVt();
-    	writeAfeBrickBVt();
-    	writeAfeBrickCVt();
-    }
-    if(counter%10 == 1)
-    {
-    	writeAfeBrickDVt();
-		writeBMSExtTemp();
-		writeCANBatGaugeOvr();
-    }
+    //xSemaphoreTake(can_task_semaphore_handle, 1000);
     if(counter%5==0)
-    	readFCU_state();
-
+    	can_fcu_read_data();
     counter++;
-    writeCANBatGaugeViT();
-    writeBMSOvr();
+    xQueueSend(can_tx_queue, &can_IDs[0],(TickType_t)10); //GaugeVit
+    xQueueSend(can_tx_queue, &can_IDs[7],(TickType_t)10); //BMS Ovr
     vTaskDelayUntil(&xLastWakeTime, xFrequency);
+    //xSemaphoreGive(can_task_semaphore_handle);
     }
+
+
   /* USER CODE END app_task_10hz */
 }
 
@@ -210,12 +209,29 @@ void app_task_100hz(void const * argument)
 {
   /* USER CODE BEGIN app_task_100hz */
     TickType_t xLastWakeTime;
+    uint32_t* pReceive;
     const TickType_t xFrequency = 10;
     xLastWakeTime = xTaskGetTickCount();
     /* Infinite loop */
     for (;;)
     {
-       vTaskDelayUntil(&xLastWakeTime, xFrequency);
+    		if(uxQueueMessagesWaiting(can_tx_queue) > 0)
+    		{
+    		//xSemaphoreTake(can_task_semaphore_handle, 10);
+    		if(xQueueReceive(can_tx_queue, &pReceive, 100) == pdPASS)
+    		{
+    		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+    		for(int i=0;i<9;i++)
+    			{
+    				if(pReceive == can_IDs[i])
+    				{
+    					(func_ptrs[i])();
+    					HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+    				}
+    			}
+    		}
+    		}
+    	vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
   /* USER CODE END app_task_100hz */
 }
