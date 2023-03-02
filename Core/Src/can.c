@@ -25,7 +25,6 @@
 CAN_FilterTypeDef filterConfig;
 
 __CoderDbcCanFrame_t__ canFrame;
-struct __CoderDbcCanFrame_t__ *frame;
 
 // structure objects
 FCU_STATE_REQUEST_t fcuState;
@@ -50,9 +49,22 @@ CAN_TxHeaderTypeDef TxBrickDViT;
 
 CAN_RxHeaderTypeDef RxHeader;
 
-uint32_t mailboxAFE;
-uint32_t mailboxFuelGauge;
-uint32_t mailboxBMS;
+void can_bat_gauge_ovr_write_data(void);
+void can_bat_gauge_vit_write_data(void);
+void can_bms_ovr_write_data(void);
+void can_bms_exttemp_write_data(void);
+void can_bat_afe_brickA_write_data(void);
+void can_bat_afe_brickB_write_data(void);
+void can_bat_afe_brickC_write_data(void);
+void can_bat_afe_brickD_write_data(void);
+
+void(*func_ptrs[8])() = {can_bat_gauge_ovr_write_data, can_bat_gauge_vit_write_data, can_bms_ovr_write_data, can_bms_exttemp_write_data
+		, can_bat_afe_brickA_write_data, can_bat_afe_brickB_write_data, can_bat_afe_brickC_write_data, can_bat_afe_brickD_write_data};
+
+uint32_t mailbox1Hz;
+uint32_t mailbox10Hz;
+uint32_t mailbox100Hz;
+
 int toggle;
 int count = 0;
 uint32_t id;
@@ -63,7 +75,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	//HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_13);
 }
 
-void TxHeaderGeneratorBatBmsOvr()
+void tx_header_bat_bms_ovr()
 {
 	TxBatBmsOvr.DLC = BAT_BMS_OvrVIEW_DLC;
 	TxBatBmsOvr.ExtId = 0;
@@ -73,7 +85,7 @@ void TxHeaderGeneratorBatBmsOvr()
 	TxBatBmsOvr.TransmitGlobalTime = DISABLE;
 }
 
-void TxHeaderGeneratorBatBmsExtTemp()
+void tx_header_bat_bms_ext_temp()
 {
 	TxBatExtTemp.DLC = BAT_BMS_ExtTemp_DLC;
 	TxBatExtTemp.ExtId = 0;
@@ -83,7 +95,7 @@ void TxHeaderGeneratorBatBmsExtTemp()
 	TxBatExtTemp.TransmitGlobalTime = DISABLE;
 }
 
-void TxHeaderGeneratorBatGaugeOvr()
+void tx_header_bat_gauge_ovr()
 {
 	TxBatGaugeOvr.DLC = BAT_GAUGE_OvrVIEW_DLC;
 	TxBatGaugeOvr.ExtId = 0;
@@ -93,7 +105,7 @@ void TxHeaderGeneratorBatGaugeOvr()
 	TxBatGaugeOvr.TransmitGlobalTime = DISABLE;
 }
 
-void TxHeaderGeneratorBatGaugeViT()
+void tx_header_bat_gauge_Vit()
 {
 	TxBatGaugeVit.DLC = BAT_GAUGE_ViT_DLC;
 	TxBatGaugeVit.ExtId = 0;
@@ -103,7 +115,7 @@ void TxHeaderGeneratorBatGaugeViT()
 	TxBatGaugeVit.TransmitGlobalTime = DISABLE;
 }
 
-void TxHeaderGeneratorBatBrickAVit()
+void tx_header_bat_brickA_Vit()
 {
 	TxBrickAViT.DLC = BAT_AFE_vBRICK_A_DLC;
 	TxBrickAViT.ExtId = 0;
@@ -113,7 +125,7 @@ void TxHeaderGeneratorBatBrickAVit()
 	TxBrickAViT.TransmitGlobalTime = DISABLE;
 }
 
-void TxHeaderGeneratorBatBrickBVit()
+void tx_header_bat_brickB_Vit()
 {
 	TxBrickBViT.DLC = BAT_AFE_vBRICK_B_DLC;
 	TxBrickBViT.ExtId = 0;
@@ -123,7 +135,7 @@ void TxHeaderGeneratorBatBrickBVit()
 	TxBrickBViT.TransmitGlobalTime = DISABLE;
 }
 
-void TxHeaderGeneratorBatBrickCVit()
+void tx_header_bat_brickC_Vit()
 {
 	TxBrickCViT.DLC = BAT_AFE_vBRICK_C_DLC;
 	TxBrickCViT.ExtId = 0;
@@ -133,7 +145,7 @@ void TxHeaderGeneratorBatBrickCVit()
 	TxBrickCViT.TransmitGlobalTime = DISABLE;
 }
 
-void TxHeaderGeneratorBatBrickDVit()
+void tx_header_bat_brickD_vit()
 {
 	TxBrickDViT.DLC = BAT_AFE_vBRICK_D_DLC;
 	TxBrickDViT.ExtId = 0;
@@ -143,7 +155,7 @@ void TxHeaderGeneratorBatBrickDVit()
 	TxBrickDViT.TransmitGlobalTime = DISABLE;
 }
 
-void RxHeaderGenerator()
+void rx_header_fcu_state()
 {
 	RxHeader.DLC = 8;
 	RxHeader.ExtId = 0;
@@ -152,7 +164,7 @@ void RxHeaderGenerator()
 	RxHeader.StdId = 0x00;
 }
 
-void SetFilterConfig()
+void set_filter_config()
 {
 	filterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
 	filterConfig.FilterActivation = ENABLE;
@@ -201,7 +213,7 @@ void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   HAL_CAN_Start(&hcan1);
-  RxHeaderGenerator();
+  rx_header_fcu_state();
 
   /* USER CODE END CAN1_Init 2 */
 
@@ -275,73 +287,74 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 }
 
 /* USER CODE BEGIN 1 */
-void writeCANBatGaugeOvr()
+void can_bat_gauge_ovr_write_data(void)
 {
-	TxHeaderGeneratorBatGaugeOvr();
+	tx_header_bat_gauge_ovr();
 	id = Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGaugeOvr, &canFrame);
 	if(id == 0x1ff810)
-	HAL_CAN_AddTxMessage(&hcan1, &TxBatGaugeOvr, canFrame.Data, &mailboxFuelGauge);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBatGaugeOvr, canFrame.Data, &mailbox1Hz);
 }
 
-void writeCANBatGaugeViT()
+void can_bat_gauge_vit_write_data(void)
 {
-	TxHeaderGeneratorBatGaugeViT();
+	tx_header_bat_gauge_Vit();
 	id = Pack_BAT_GAUGE_ViT_can_codegen(&batGaugeViT, &canFrame);
 	if(id == 0x1ff820)
-	HAL_CAN_AddTxMessage(&hcan1, &TxBatGaugeVit, canFrame.Data, &mailboxFuelGauge);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBatGaugeVit, canFrame.Data, &mailbox10Hz);
 }
 
-void writeBMSOvr()
+void can_bms_ovr_write_data(void)
 {
-	TxHeaderGeneratorBatBmsOvr();
+	tx_header_bat_bms_ovr();
 	id = Pack_BAT_BMS_OvrVIEW_can_codegen(&batBmsOvr, &canFrame);
 	if(id == 0x1ff610)
-	HAL_CAN_AddTxMessage(&hcan1, &TxBatBmsOvr, canFrame.Data, &mailboxBMS);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBatBmsOvr, canFrame.Data, &mailbox10Hz);
 }
 
-void writeBMSExtTemp()
+void can_bms_exttemp_write_data(void)
 {
-	TxHeaderGeneratorBatBmsExtTemp();
+	tx_header_bat_bms_ext_temp();
 	id = Pack_BAT_BMS_ExtTemp_can_codegen(&batBmsExtTemp, &canFrame);
 	if(id == 0x1ff611)
-	HAL_CAN_AddTxMessage(&hcan1, &TxBatExtTemp, canFrame.Data, &mailboxBMS);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBatExtTemp, canFrame.Data, &mailbox1Hz);
 }
 
-void writeAfeBrickAVt()
+void can_bat_afe_brickA_write_data(void)
 {
-	TxHeaderGeneratorBatBrickAVit();
+	tx_header_bat_brickA_Vit();
 	id = Pack_BAT_AFE_vBRICK_A_can_codegen(&batAfeBrickA, &canFrame);
 	if(id == 0x1ff710)
-	HAL_CAN_AddTxMessage(&hcan1, &TxBrickAViT, canFrame.Data, &mailboxAFE);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBrickAViT, canFrame.Data, &mailbox1Hz);
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_13);
 }
 
-void writeAfeBrickBVt()
+void can_bat_afe_brickB_write_data(void)
 {
-	TxHeaderGeneratorBatBrickBVit();
+	tx_header_bat_brickB_Vit();
 	id = Pack_BAT_AFE_vBRICK_B_can_codegen(&batAfeBrickB, &canFrame);
 	if(id == 0x1ff711)
-	HAL_CAN_AddTxMessage(&hcan1, &TxBrickBViT, canFrame.Data, &mailboxAFE);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBrickBViT, canFrame.Data, &mailbox1Hz);
 }
 
-void writeAfeBrickCVt()
+void can_bat_afe_brickC_write_data(void)
 {
-	TxHeaderGeneratorBatBrickCVit();
+	tx_header_bat_brickC_Vit();
 	id = Pack_BAT_AFE_vBRICK_C_can_codegen(&batAfeBrickC, &canFrame);
 	if(id == 0x1ff712)
-	HAL_CAN_AddTxMessage(&hcan1, &TxBrickCViT, canFrame.Data, &mailboxAFE);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBrickCViT, canFrame.Data, &mailbox1Hz);
 }
 
-void writeAfeBrickDVt()
+void can_bat_afe_brickD_write_data(void)
 {
-	TxHeaderGeneratorBatBrickDVit();
+	tx_header_bat_brickD_vit();
 	id = Pack_BAT_AFE_vBRICK_D_can_codegen(&batAfeBrickD, &canFrame);
 	if(id == 0x1ff713)
-	HAL_CAN_AddTxMessage(&hcan1, &TxBrickDViT, canFrame.Data, &mailboxAFE);
+	HAL_CAN_AddTxMessage(&hcan1, &TxBrickDViT, canFrame.Data, &mailbox1Hz);
 }
 
-void readFCU_state()
+void can_fcu_read_data()
 {
-	SetFilterConfig();
+	set_filter_config();
 	if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK)
 		{
 		id = Unpack_FCU_STATE_REQUEST_can_codegen(&fcuState, &state, 1);
