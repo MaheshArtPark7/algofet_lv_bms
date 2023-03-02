@@ -25,6 +25,8 @@
 #define SUB_CMD_DATA_BUFF_ADDR (uint8_t)0x40u     // 0x40 + R/W bit(0: read)
 #define SUB_CMD_WR_CHKSUM_LSB_ADDR (uint8_t)0xC0u // 0x60 + R/W bit(1: write)
 #define SUB_CMD_Wr_CHKSUM_MSB_ADDR (uint8_t)0xC1u // 0x61 + R/W bit(1: write)
+#define RAM_REG_LSB_ADDR  (uint8_t)0x60u
+#define RAM_REG_MSB_ADDR  (uint8_t)0x61u
 
 #define SUB_CMD_DATA_BUFF_LEN_MAX 32 // 32 Bytes
 
