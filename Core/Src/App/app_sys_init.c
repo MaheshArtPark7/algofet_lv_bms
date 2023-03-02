@@ -12,7 +12,7 @@
 #include "can.h"
 #include "dma.h"
 #include "adc.h"
-#include "spi.h"
+
 #include "app_afe.h"
 #include "app_fuel_gauge.h"
 
@@ -34,8 +34,6 @@ int16_t app_sys_init(void)
 		(void) MX_DMA_Init();
 		// ADC Init
 		(void) MX_ADC1_Init();
-		// huart Init
-		(void) MX_USART1_UART_Init();
 
 	}while(false);
 
@@ -59,10 +57,10 @@ int16_t app_sys_peripheral_init(void)
 			break;
 		}
 		//State Machine Init
-//		if(SYS_OK != app_bms_sm_init())
-//		{
-//		    break;
-//		}
+		if(SYS_OK != app_bms_sm_init())
+		{
+		    break;
+		}
 		// CAN NW Init
 
 		ret_val = SYS_OK;

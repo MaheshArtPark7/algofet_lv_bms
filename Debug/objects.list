@@ -1,6 +1,3 @@
-"./Core/CodeGen/can/source/can_codegen-binutil.o"
-"./Core/CodeGen/can/source/can_codegen-fmon.o"
-"./Core/CodeGen/can/source/can_codegen.o"
 "./Core/Lib/BQ76952/bq76952.o"
 "./Core/Src/App/app_adc.o"
 "./Core/Src/App/app_afe.o"
