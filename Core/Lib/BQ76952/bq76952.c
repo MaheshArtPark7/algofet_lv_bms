@@ -85,7 +85,7 @@ int16_t bq76952_init(void)
     AFE_RAMwrite.vCellModecmd = 0x03C3;           //0x03C3 for 6S | 0x0303 for 4S
     AFE_RAMwrite.FETs_CONTROL = 0x0;
     AFE_RAMwrite.enabledProtectionsA = 0xBC;
-    AFE_RAMwrite.enabledProtectionsB = 0xF7;
+    AFE_RAMwrite.enabledProtectionsB = 0xF7;      //(Also sets OTC, OTD and OTF as 1)
     AFE_RAMwrite.prechargeStartVoltage = 0x0A8C;  //2700mV
     AFE_RAMwrite.prechargeStopVoltage = 0x0AF0;   //2800mV
     AFE_RAMwrite.TS3config = 0x07;                //Default for TS3: 0X07 | Default for TS1: 0x07
@@ -93,6 +93,7 @@ int16_t bq76952_init(void)
     bq76952_vCellMode();
     bq76952_FETs_Control();
     bq76952_TS3config();
+
     //RESET #Resets the Bq769x2 Registers
     //bq76952_AFE_reset();
 
@@ -272,6 +273,7 @@ extern int16_t bq76952_FETs_OFF(void)
   }while(false);
   return ret_val;
 }
+
 extern int16_t bq76952_Charge(void)
 {
   //Takes the BMS to Charging mode
@@ -326,7 +328,7 @@ static int16_t bq76952_FETs_ReadStatus(void)
   {
     bq76952_dir_cmd_read(FETStatus, &data, 1);
     HAL_Delay(50);
-    CHG = (0x1 & data);        // charge FET state
+    CHG = (0x1 & data);                // charge FET state
     PCHG = ((0x2 & data) >> 1);        // pre-charge FET state
     DSG = ((0x4 & data) >> 2);         // discharge FET state
     PDSG = ((0x8 & data) >> 3);        // pre-discharge FET state
@@ -357,9 +359,9 @@ extern int16_t bq76952_FETs_call(void)
 }
 extern int16_t led_blink(void)
 {
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, 1);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 1);
   HAL_Delay(100);
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, 0);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 0);
   HAL_Delay(100);
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, 1);
   HAL_Delay(100);

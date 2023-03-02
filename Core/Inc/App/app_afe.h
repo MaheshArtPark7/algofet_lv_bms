@@ -45,7 +45,7 @@ typedef struct
     uint16_t stack_vol;
     uint16_t pack_vol;
     uint16_t load_vol;  //Stores load Voltage
-    float pack_curr;        //Stores Pack Current
+    uint16_t pack_curr;        //Stores Pack Current
     uint16_t cellvoltages[10];    //Stores Cell Voltages (1-10)
     uint16_t temps[2];     //Stores Temperatures TS1 and TS3
 
