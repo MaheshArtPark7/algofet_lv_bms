@@ -5,23 +5,29 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Core/Lib/BQ76952/bq76952.c 
+../Core/CodeGen/can/source/can_codegen-binutil.c \
+../Core/CodeGen/can/source/can_codegen-fmon.c \
+../Core/CodeGen/can/source/can_codegen.c 
 
 OBJS += \
-./Core/Lib/BQ76952/bq76952.o 
+./Core/CodeGen/can/source/can_codegen-binutil.o \
+./Core/CodeGen/can/source/can_codegen-fmon.o \
+./Core/CodeGen/can/source/can_codegen.o 
 
 C_DEPS += \
-./Core/Lib/BQ76952/bq76952.d 
+./Core/CodeGen/can/source/can_codegen-binutil.d \
+./Core/CodeGen/can/source/can_codegen-fmon.d \
+./Core/CodeGen/can/source/can_codegen.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
-Core/Lib/BQ76952/%.o Core/Lib/BQ76952/%.su: ../Core/Lib/BQ76952/%.c Core/Lib/BQ76952/subdir.mk
+Core/CodeGen/can/source/%.o Core/CodeGen/can/source/%.su: ../Core/CodeGen/can/source/%.c Core/CodeGen/can/source/subdir.mk
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F446xx -DSTM32_THREAD_SAFE_STRATEGY=4 -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../Core/ThreadSafe -I../Core/Inc/App -I../Core/Lib/BQ76952 -I../Core/CodeGen/can/source -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 
-clean: clean-Core-2f-Lib-2f-BQ76952
+clean: clean-Core-2f-CodeGen-2f-can-2f-source
 
-clean-Core-2f-Lib-2f-BQ76952:
-	-$(RM) ./Core/Lib/BQ76952/bq76952.d ./Core/Lib/BQ76952/bq76952.o ./Core/Lib/BQ76952/bq76952.su
+clean-Core-2f-CodeGen-2f-can-2f-source:
+	-$(RM) ./Core/CodeGen/can/source/can_codegen-binutil.d ./Core/CodeGen/can/source/can_codegen-binutil.o ./Core/CodeGen/can/source/can_codegen-binutil.su ./Core/CodeGen/can/source/can_codegen-fmon.d ./Core/CodeGen/can/source/can_codegen-fmon.o ./Core/CodeGen/can/source/can_codegen-fmon.su ./Core/CodeGen/can/source/can_codegen.d ./Core/CodeGen/can/source/can_codegen.o ./Core/CodeGen/can/source/can_codegen.su
 
-.PHONY: clean-Core-2f-Lib-2f-BQ76952
+.PHONY: clean-Core-2f-CodeGen-2f-can-2f-source
 

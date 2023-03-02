@@ -19,9 +19,15 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "adc.h"
+#include "math.h"
 
 /* USER CODE BEGIN 0 */
 
+int res = 0;
+#define NTC_UP_R 10000.0f
+#define A 0.0014329865352311513
+#define B 0.0002455160426377755
+#define C 5.996706961031892e-8
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -126,5 +132,32 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+void testBenchTempCheck()
+{
+	//HAL_ADCEx_Calibration_Start(&hadc1);
+	HAL_ADC_Start(&hadc1);
+	uint16_t val = 0;
+	char str;
+
+	val = HAL_ADC_GetValue(&hadc1);
+	float voltage = (float)val/4096*5;
+	float ntcRes = ((voltage*10)/(5-voltage))*1000;
+	int temp = 1 / (A + B * log(ntcRes) + C * log(ntcRes) * log(ntcRes) * log(ntcRes));
+	if(20<temp<65)
+	{
+		//FET's stay on
+	}
+	else
+	{
+		//Fet's go off
+	}
+	sprintf (str, "%d", temp);
+	//HAL_UART_Transmit(&huart, (uint8_t)val, 1, 50);
+		}
+
+
+
+
 
 /* USER CODE END 1 */
