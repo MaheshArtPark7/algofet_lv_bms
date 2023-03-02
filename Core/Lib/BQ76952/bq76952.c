@@ -36,9 +36,9 @@ static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint16_t 
 
 static int16_t bq76952_dir_cmd_access(uint8_t dir_cmd, bool read_write, uint8_t data_len, uint8_t *p_data);
 static int16_t bq76952_write_to_register(uint8_t reg_address, uint8_t *pdata, uint8_t len);
-static int16_t bq76952_write_sub_cmd(uint8_t subCmdRegAddr, uint8_t subCmd);
-static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint8_t *p_data, uint8_t len);
-static int16_t bq76952_afe_reset(void);
+static int16_t bq76952_write_sub_cmd(uint16_t subCmdRegAddr, uint16_t subCmd);
+static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint16_t **pData, uint8_t len);
+extern int16_t bq76952_AFE_reset(void);
 static int16_t bq76952_set_powercfg(TsBmsPower_cfg *pTsBmsPower_cfg_t);
 extern int16_t bq76952_get_device_number(uint16_t *pDev_num);
 static int16_t bq76952_set_config_update(void);
@@ -97,9 +97,9 @@ int16_t bq76952_init(void)
     bq76952_FETs_Control();
     bq76952_TS3config();
 
-        bq76952_get_device_number(&device_number);
+        //bq76952_get_device_number(&device_number);
         //RESET #Resets the Bq769x2 Registers
-        bq76952_afe_reset();
+        bq76952_AFE_reset();
 
         // Enter config update mode
         bq76952_set_config_update();
@@ -427,7 +427,7 @@ static int16_t bq76952_set_powercfg(TsBmsPower_cfg *pTsBmsPower_cfg_t)
     int16_t ret_val = SYS_ERR;
     do
     {
-        if(SYS_OK != bq76952_write_to_register(SUB_CMD_REG_LSB_ADDR, pTsBmsPower_cfg_t->buffer, pTsBmsPower_cfg_t->len))
+        //if(SYS_OK != bq76952_write_to_register(SUB_CMD_REG_LSB_ADDR, pTsBmsPower_cfg_t->buffer, pTsBmsPower_cfg_t->len))
         {
             break;
         }
@@ -441,8 +441,10 @@ extern int16_t bq76952_get_device_number(uint16_t *pDev_num)
     int16_t ret_val = SYS_ERR;
     do
     {
-      break;
-    }
+      if(SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, DEVICE_NUMBER))
+      {
+        break;
+      }
     if(SYS_OK != bq76952_read_sub_cmd_data_buffer(SUB_CMD_DATA_BUFF_ADDR, &pDev_num, 2))
     {
       //pDev_num= *pDev_num;
@@ -450,7 +452,7 @@ extern int16_t bq76952_get_device_number(uint16_t *pDev_num)
     }
     ret_val = SYS_OK;
   } while(false);
-  return ret_val;;
+  return ret_val;
 }
 
 //----------------------------------------------DIRECT COMMANDS-------------------------------------------------------------------

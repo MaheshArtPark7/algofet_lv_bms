@@ -19,6 +19,7 @@ RM := rm -rf
 -include Core/Src/App/subdir.mk
 -include Core/Src/subdir.mk
 -include Core/Lib/BQ76952/subdir.mk
+-include Core/CodeGen/can/source/subdir.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -67,8 +68,8 @@ all: main-build
 main-build: AlgoFetBms.elf secondary-outputs
 
 # Tool invocations
-AlgoFetBms.elf AlgoFetBms.map: $(OBJS) $(USER_OBJS) C:\AlgoFet\algofet_lv_bms\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "AlgoFetBms.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\AlgoFet\algofet_lv_bms\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="AlgoFetBms.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+AlgoFetBms.elf AlgoFetBms.map: $(OBJS) $(USER_OBJS) D:\Git_rep\algofet_lv_bms\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "AlgoFetBms.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\Git_rep\algofet_lv_bms\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="AlgoFetBms.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
