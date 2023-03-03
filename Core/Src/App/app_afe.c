@@ -26,7 +26,7 @@ BAT_AFE_vBRICK_D_t batAfeBrickD;
 BAT_GAUGE_OvrVIEW_t batGaugeOvr;
 BAT_GAUGE_ViT_t batGaugeViT;
 
-int16_t afe_data_read(void)
+int16_t afe_can_data_read(void)
 {
   uint16_t data=0;
   uint8_t CellVoltageHolder = Cell1Voltage;
@@ -56,8 +56,6 @@ int16_t afe_data_read(void)
       AFE_data.temps[1] = data;
     for(uint8_t i=0;i<10;i++)
     {
-      do
-      {
         if(SYS_OK == bq76952_dir_cmd_read(CellVoltageHolder, &data, 2))
         {
           AFE_data.cellvoltages[i] = data;
@@ -97,9 +95,18 @@ int16_t afe_data_read(void)
 		}
           CellVoltageHolder+=2;
         }
-      }while(false);
     }
+    ret_val = SYS_OK;
+  }while(false);
 
+  return ret_val;
+}
+
+int16_t afe_data_read(void)
+{
+  int16_t ret_val = SYS_ERR;
+  do
+  {
     AFE_info.Device_Number = AFE_data.device_number;
     AFE_info.Stack_Voltage = 0.01*(AFE_data.stack_vol);                     //Returns Stack Voltage in Volts (V)
     AFE_info.Pack_Voltage = 0.01*(AFE_data.pack_vol);                       //Returns Pack Voltage in Volts (V)
@@ -112,7 +119,6 @@ int16_t afe_data_read(void)
     }
     ret_val = SYS_OK;
   }while(false);
-
   return ret_val;
 }
 
