@@ -32,7 +32,7 @@ typedef struct
     float Stack_Voltage;          //Stores Stack Voltage
     float Pack_Voltage;           //Stores Pack Voltage
     float Load_Voltage;           //Stores Load Voltage
-    uint16_t Pack_Current;           //Stores Pack Current
+    float Pack_Current;           //Stores Pack Current
     float CellVoltages[10];    //Stores Cell Voltages (1-10)
     float Temperatures[2];     //Stores Temperatures TS1 and TS3
 

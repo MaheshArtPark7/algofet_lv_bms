@@ -27,15 +27,15 @@ CAN_FilterTypeDef filterConfig;
 __CoderDbcCanFrame_t__ canFrame;
 
 // structure objects
-FCU_STATE_REQUEST_t fcuState;
-BAT_BMS_OvrVIEW_t batBmsOvr;
-BAT_BMS_ExtTemp_t batBmsExtTemp;
-BAT_AFE_vBRICK_A_t batAfeBrickA;
-BAT_AFE_vBRICK_B_t batAfeBrickB;
-BAT_AFE_vBRICK_C_t batAfeBrickC;
-BAT_AFE_vBRICK_D_t batAfeBrickD;
-BAT_GAUGE_OvrVIEW_t batGaugeOvr;
-BAT_GAUGE_ViT_t batGaugeViT;
+extern fcuState;
+extern batBmsOvr;
+extern batBmsExtTemp;
+extern batAfeBrickA;
+extern batAfeBrickB;
+extern batAfeBrickC;
+extern batAfeBrickD;
+extern batGaugeOvr;
+extern batGaugeViT;
 
 // CAN TxHeaders
 CAN_TxHeaderTypeDef TxBatBmsOvr;
