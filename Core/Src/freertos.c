@@ -210,11 +210,16 @@ void app_task_100hz(void const *argument)
     /* USER CODE BEGIN app_task_100hz */
     TickType_t xLastWakeTime;
     uint32_t* pReceive;
+    int counter = 0;
     const TickType_t xFrequency = 10;
     xLastWakeTime = xTaskGetTickCount();
     /* Infinite loop */
     for (;;)
     {
+    	if(counter%2 == 0)
+    	{
+    		afe_data_read();
+    	}
     		if(uxQueueMessagesWaiting(can_tx_queue) > 0)
     		{
     		//xSemaphoreTake(can_task_semaphore_handle, 10);
