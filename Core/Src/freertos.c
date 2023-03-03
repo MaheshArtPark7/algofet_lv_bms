@@ -150,16 +150,14 @@ void app_task_1Hz(void const *argument)
 {
     /* USER CODE BEGIN app_task_1Hz */
     TickType_t xLastWakeTime;
-    const TickType_t xFrequency = 1000;
+    const TickType_t xFrequency = 50;
     xLastWakeTime = xTaskGetTickCount();
     /* Infinite loop */
     for (;;)
     {
+		afe_data_read();
     	//xSemaphoreTake(can_task_semaphore_handle, 10);
-    	for(int i = 1;i<7;i++)
-    	{
-    		xQueueSend(can_tx_queue, &can_IDs[i], (TickType_t)10);
-    	}
+
     	vTaskDelayUntil(&xLastWakeTime, xFrequency);
     	//xSemaphoreGive(can_task_semaphore_handle);
     }
@@ -187,6 +185,13 @@ void app_task_10hz(void const *argument)
     //xSemaphoreTake(can_task_semaphore_handle, 1000);
     if(counter%5==0)
     	can_fcu_read_data();
+    if(counter%10 == 0)
+    {
+    	for(int i = 1;i<7;i++)
+    	    	{
+    	    		xQueueSend(can_tx_queue, &can_IDs[i], (TickType_t)10);
+    	    	}
+    }
     counter++;
     xQueueSend(can_tx_queue, &can_IDs[0],(TickType_t)10); //GaugeVit
     xQueueSend(can_tx_queue, &can_IDs[7],(TickType_t)10); //BMS Ovr
@@ -218,7 +223,7 @@ void app_task_100hz(void const *argument)
     {
     	if(counter%2 == 0)
     	{
-    		afe_data_read();
+    		data_afe_to_can();
     	}
     		if(uxQueueMessagesWaiting(can_tx_queue) > 0)
     		{
