@@ -9,11 +9,22 @@
 #include "bq76952.h"
 #include "main.h"
 #include "bq76952_defines.h"
+#include "can_codegen.h"
 
 
 TS_FETcotrol_s AFE_FETcontrol;
 TS_AFEdata_s AFE_data;
 TS_AFEinfo_s AFE_info;
+
+FCU_STATE_REQUEST_t fcuState;
+BAT_BMS_OvrVIEW_t batBmsOvr;
+BAT_BMS_ExtTemp_t batBmsExtTemp;
+BAT_AFE_vBRICK_A_t batAfeBrickA;
+BAT_AFE_vBRICK_B_t batAfeBrickB;
+BAT_AFE_vBRICK_C_t batAfeBrickC;
+BAT_AFE_vBRICK_D_t batAfeBrickD;
+BAT_GAUGE_OvrVIEW_t batGaugeOvr;
+BAT_GAUGE_ViT_t batGaugeViT;
 
 int16_t afe_data_read(void)
 {
@@ -27,11 +38,20 @@ int16_t afe_data_read(void)
     if(SYS_OK == bq76952_dir_cmd_read(StackVoltage, &data, 2))
       AFE_data.stack_vol = data;
     if(SYS_OK == bq76952_dir_cmd_read(PACKPinVoltage, &data, 2))
+    {
       AFE_data.pack_vol = data;
+      batGaugeViT.BAT_gauge_vPack = data;
+    }
     if(SYS_OK == bq76952_dir_cmd_read(CC2Current, &data, 2))
+    {
       AFE_data.pack_curr = data;
-    if(SYS_OK == bq76952_dir_cmd_read(TS1Temperature, &data, 2))
-      AFE_data.temps[0] = data;
+      batGaugeViT.BAT_gauge_iPack = data;
+    }
+      if(SYS_OK == bq76952_dir_cmd_read(TS1Temperature, &data, 2))
+      {
+    	  AFE_data.temps[0] = data;
+    	  batGaugeViT.BAT_gauge_tPack = data;
+      }
     if(SYS_OK == bq76952_dir_cmd_read(TS3Temperature, &data, 2))
       AFE_data.temps[1] = data;
     for(uint8_t i=0;i<10;i++)
