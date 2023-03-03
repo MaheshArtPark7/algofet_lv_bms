@@ -44,7 +44,7 @@ typedef struct
     uint16_t device_number;
     uint16_t stack_vol;
     uint16_t pack_vol;
-    uint16_t load_vol;  //Stores load Voltage
+    uint16_t load_vol;         //Stores load Voltage
     uint16_t pack_curr;        //Stores Pack Current
     uint16_t cellvoltages[10];    //Stores Cell Voltages (1-10)
     uint16_t temps[2];     //Stores Temperatures TS1 and TS3
@@ -52,6 +52,7 @@ typedef struct
 }TS_AFEdata_s;
 
 extern int16_t afe_data_read(void);
+void data_afe_to_can(void);
 extern int16_t app_afe_init(void);
 extern int16_t app_afe_tick(void);
 
