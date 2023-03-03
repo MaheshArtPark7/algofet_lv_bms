@@ -9,11 +9,22 @@
 #include "bq76952.h"
 #include "main.h"
 #include "bq76952_defines.h"
+#include "can_codegen.h"
 
 
 TS_FETcotrol_s AFE_FETcontrol;
 TS_AFEdata_s AFE_data;
 TS_AFEinfo_s AFE_info;
+
+FCU_STATE_REQUEST_t fcuState;
+BAT_BMS_OvrVIEW_t batBmsOvr;
+BAT_BMS_ExtTemp_t batBmsExtTemp;
+BAT_AFE_vBRICK_A_t batAfeBrickA;
+BAT_AFE_vBRICK_B_t batAfeBrickB;
+BAT_AFE_vBRICK_C_t batAfeBrickC;
+BAT_AFE_vBRICK_D_t batAfeBrickD;
+BAT_GAUGE_OvrVIEW_t batGaugeOvr;
+BAT_GAUGE_ViT_t batGaugeViT;
 
 int16_t afe_data_read(void)
 {
@@ -60,6 +71,23 @@ int16_t afe_data_read(void)
   }while(false);
 
   return ret_val;
+}
+
+void data_afe_to_can()
+{
+	batGaugeViT.BAT_gauge_vPack = AFE_data.pack_vol;
+	batGaugeViT.BAT_gauge_iPack = AFE_data.pack_curr;
+	batGaugeViT.BAT_gauge_tPack = AFE_data.temps[0];
+	batAfeBrickA.BAT_afe_vBrick01 = AFE_data.cellvoltages[0];
+	batAfeBrickA.BAT_afe_vBrick02 = AFE_data.cellvoltages[1];
+	batAfeBrickA.BAT_afe_vBrick03 = AFE_data.cellvoltages[2];
+	batAfeBrickA.BAT_afe_vBrick04 = AFE_data.cellvoltages[3];
+	batAfeBrickB.BAT_afe_vBrick05 = AFE_data.cellvoltages[4];
+	batAfeBrickB.BAT_afe_vBrick06 = AFE_data.cellvoltages[5];
+	batAfeBrickB.BAT_afe_vBrick07 = AFE_data.cellvoltages[6];
+	batAfeBrickB.BAT_afe_vBrick08 = AFE_data.cellvoltages[7];
+	batAfeBrickC.BAT_afe_vBrick09 = AFE_data.cellvoltages[8];
+	batAfeBrickC.BAT_afe_vBrick10 = AFE_data.cellvoltages[9];
 }
 
 int16_t app_afe_init(void)
