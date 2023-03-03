@@ -55,22 +55,20 @@ uint32_t can_IDs[8] = {0x1ff610, 0x1ff611, 0x1ff710, 0x1ff711, 0x1ff712, 0x1ff71
 osThreadId APP_1HZ_TASKHandle;
 osThreadId APP_10HZ_TASKHandle;
 osThreadId APP_100HZ_TASKHandle;
-osThreadId APP_AFE_DataHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 QueueHandle_t can_tx_queue,can_rx_queue;
 /* USER CODE END FunctionPrototypes */
 
-void app_task_1Hz(void const * argument);
-void app_task_10hz(void const * argument);
-void app_task_100hz(void const * argument);
-void app_afe_data(void const * argument);
+void app_task_1Hz(void const *argument);
+void app_task_10hz(void const *argument);
+void app_task_100hz(void const *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
+void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize);
 
 /* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
 static StaticTask_t xIdleTaskTCBBuffer;
@@ -86,35 +84,47 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackTyp
 /* USER CODE END GET_IDLE_TASK_MEMORY */
 
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
-void MX_FREERTOS_Init(void) {
-  /* USER CODE BEGIN Init */
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
+void MX_FREERTOS_Init(void)
+{
+    /* USER CODE BEGIN Init */
+
+    /* USER CODE END Init */
+	can_tx_queue = xQueueCreate(10, sizeof(uint32_t)); //to be used to queue the messages being sent on CAN line
+													//only 3 messages can be transmitted at once at the hardware level.
+	can_rx_queue = xQueueCreate(10, sizeof(uint32_t));
+
+
+	if(can_tx_queue != NULL)
+	{
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+	}
 
   /* USER CODE END Init */
 
-  /* USER CODE BEGIN RTOS_MUTEX */
+    /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
+    /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
 	/* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
-  /* USER CODE BEGIN RTOS_TIMERS */
+    /* USER CODE BEGIN RTOS_TIMERS */
     /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
+    /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
     /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
+    /* USER CODE END RTOS_QUEUES */
 
-  /* Create the thread(s) */
-  /* definition and creation of APP_1HZ_TASK */
-  osThreadDef(APP_1HZ_TASK, app_task_1Hz, osPriorityNormal, 0, 128);
-  APP_1HZ_TASKHandle = osThreadCreate(osThread(APP_1HZ_TASK), NULL);
+    /* Create the thread(s) */
+    /* definition and creation of APP_1HZ_TASK */
+    osThreadDef(APP_1HZ_TASK, app_task_1Hz, osPriorityNormal, 0, 128);
+    APP_1HZ_TASKHandle = osThreadCreate(osThread(APP_1HZ_TASK), NULL);
 
   /* definition and creation of APP_10HZ_TASK */
   osThreadDef(APP_10HZ_TASK, app_task_10hz, osPriorityNormal, 0, 128);
@@ -124,14 +134,9 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(APP_100HZ_TASK, app_task_100hz, osPriorityNormal, 0, 128);
   APP_100HZ_TASKHandle = osThreadCreate(osThread(APP_100HZ_TASK), NULL);
 
-  /* definition and creation of APP_AFE_Data */
-  osThreadDef(APP_AFE_Data, app_afe_data, osPriorityNormal, 0, 128);
-  APP_AFE_DataHandle = osThreadCreate(osThread(APP_AFE_Data), NULL);
-
-  /* USER CODE BEGIN RTOS_THREADS */
+    /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
+    /* USER CODE END RTOS_THREADS */
 }
 
 /* USER CODE BEGIN Header_app_task_1Hz */
@@ -141,9 +146,9 @@ void MX_FREERTOS_Init(void) {
  * @retval None
  */
 /* USER CODE END Header_app_task_1Hz */
-void app_task_1Hz(void const * argument)
+void app_task_1Hz(void const *argument)
 {
-  /* USER CODE BEGIN app_task_1Hz */
+    /* USER CODE BEGIN app_task_1Hz */
     TickType_t xLastWakeTime;
     const TickType_t xFrequency = 1000;
     xLastWakeTime = xTaskGetTickCount();
@@ -169,9 +174,9 @@ void app_task_1Hz(void const * argument)
  * @retval None
  */
 /* USER CODE END Header_app_task_10hz */
-void app_task_10hz(void const * argument)
+void app_task_10hz(void const *argument)
 {
-  /* USER CODE BEGIN app_task_10hz */
+    /* USER CODE BEGIN app_task_10hz */
     TickType_t xLastWakeTime;
     uint16_t counter = 0;
     const TickType_t xFrequency = 100;
@@ -200,9 +205,9 @@ void app_task_10hz(void const * argument)
  * @retval None
  */
 /* USER CODE END Header_app_task_100hz */
-void app_task_100hz(void const * argument)
+void app_task_100hz(void const *argument)
 {
-  /* USER CODE BEGIN app_task_100hz */
+    /* USER CODE BEGIN app_task_100hz */
     TickType_t xLastWakeTime;
     uint32_t* pReceive;
     int counter = 0;
@@ -213,7 +218,7 @@ void app_task_100hz(void const * argument)
     {
     	if(counter%2 == 0)
     	{
-    		afe_can_data_read();
+    		afe_data_read();
     	}
     		if(uxQueueMessagesWaiting(can_tx_queue) > 0)
     		{
@@ -233,29 +238,7 @@ void app_task_100hz(void const * argument)
     		}
     	vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
-  /* USER CODE END app_task_100hz */
-}
-
-/* USER CODE BEGIN Header_StartTask04 */
-/**
-* @brief Function implementing the APP_AFE_Data thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTask04 */
-void app_afe_data(void const * argument)
-{
-  /* USER CODE BEGIN StartTask04 */
-  TickType_t xLastWakeTime;
-  const TickType_t xFrequency = 50;
-  xLastWakeTime = xTaskGetTickCount();
-  /* Infinite loop */
-  for(;;)
-  {
-    afe_data_read();
-    vTaskDelayUntil(&xLastWakeTime, xFrequency);
-  }
-  /* USER CODE END StartTask04 */
+    /* USER CODE END app_task_100hz */
 }
 
 /* Private application code --------------------------------------------------*/
