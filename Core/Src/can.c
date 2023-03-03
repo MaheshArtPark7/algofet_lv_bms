@@ -27,7 +27,7 @@ CAN_FilterTypeDef filterConfig;
 __CoderDbcCanFrame_t__ canFrame;
 
 // structure objects
-extern fcuState;
+extern fcuState; //takes reference of structure object from app_afe.c
 extern batBmsOvr;
 extern batBmsExtTemp;
 extern batAfeBrickA;

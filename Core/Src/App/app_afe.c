@@ -61,6 +61,40 @@ int16_t afe_data_read(void)
         if(SYS_OK == bq76952_dir_cmd_read(CellVoltageHolder, &data, 2))
         {
           AFE_data.cellvoltages[i] = data;
+          switch (i) {
+			case 0:
+				batAfeBrickA.BAT_afe_vBrick01 = AFE_data.cellvoltages[i];
+				break;
+			case 1:
+				batAfeBrickA.BAT_afe_vBrick02 = AFE_data.cellvoltages[i];
+				break;
+			case 2:
+				batAfeBrickA.BAT_afe_vBrick03 = AFE_data.cellvoltages[i];
+				break;
+			case 3:
+				batAfeBrickA.BAT_afe_vBrick04 = AFE_data.cellvoltages[i];
+				break;
+			case 4:
+				batAfeBrickB.BAT_afe_vBrick05 = AFE_data.cellvoltages[i];
+				break;
+			case 5:
+				batAfeBrickB.BAT_afe_vBrick06 = AFE_data.cellvoltages[i];
+				break;
+			case 6:
+				batAfeBrickB.BAT_afe_vBrick07 = AFE_data.cellvoltages[i];
+				break;
+			case 7:
+				batAfeBrickB.BAT_afe_vBrick08 = AFE_data.cellvoltages[i];
+				break;
+			case 8:
+				batAfeBrickC.BAT_afe_vBrick09 = AFE_data.cellvoltages[i];
+				break;
+			case 9:
+				batAfeBrickC.BAT_afe_vBrick10 = AFE_data.cellvoltages[i];
+				break;
+			default:
+				break;
+		}
           CellVoltageHolder+=2;
         }
       }while(false);
