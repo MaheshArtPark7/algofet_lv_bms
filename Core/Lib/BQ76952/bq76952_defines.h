@@ -89,6 +89,7 @@
 //------------------------------------------------------------------------------
 // Command-Only Subcommands
 #define SUB_CMD_LEN 0x02
+#define CHECKSUM_LEN 0x02
 #define EXIT_DEEPSLEEP 0x000E
 #define DEEPSLEEP 0x000F
 #define SHUTDOWN 0x0010
