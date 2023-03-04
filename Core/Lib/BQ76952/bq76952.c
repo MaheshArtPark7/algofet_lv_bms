@@ -97,18 +97,16 @@ int16_t bq76952_init(void)
     bq76952_FETs_Control();
     bq76952_TS3config();
 
-        //bq76952_get_device_number(&device_number);
         //RESET #Resets the Bq769x2 Registers
-        bq76952_AFE_reset();
+        //bq76952_AFE_reset();
 
         // Enter config update mode
-        bq76952_set_config_update();
+        //bq76952_set_config_update();
 
         // TODO: Check if CFGUPDATE bit is SET
 
-        //
         // Leave Reg1 and Reg2 mode in present state when entering deep-sleep state
-        bq76952_set_powercfg(&TsBmsPower_cfg_t);
+        //bq76952_set_powercfg(&TsBmsPower_cfg_t);
         //REG0Config --> 0x01
         //DFETOFFPinConfig --> 0x42  #Set DFETOFF pin to control both CHG and DSG FET
         //TS1Config --> 0xB3  #ADC raw data reported
@@ -139,7 +137,6 @@ int16_t bq76952_init(void)
         //SCDDelay --> 0x03					#30us. Enabled with a delay of (value - 1) * 15 us; min value of 1
         //SCDLLatchLimit --> 0x01			#Only with load removal. Refer to TRM page 170
 
-    //
     // Leave Reg1 and Reg2 mode in present state when entering deep-sleep state
     //bq76952_set_powercfg(&TsBmsPower_cfg_t);
     //REG0Config --> 0x01
@@ -447,7 +444,6 @@ extern int16_t bq76952_get_device_number(uint16_t *pDev_num)
       }
     if(SYS_OK != bq76952_read_sub_cmd_data_buffer(SUB_CMD_DATA_BUFF_ADDR, &pDev_num, 2))
     {
-      //pDev_num= *pDev_num;
       break;
     }
     ret_val = SYS_OK;
