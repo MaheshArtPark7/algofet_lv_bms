@@ -91,17 +91,13 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackTyp
 void MX_FREERTOS_Init(void)
 {
     /* USER CODE BEGIN Init */
-
     /* USER CODE END Init */
-	can_tx_queue = xQueueCreate(10, sizeof(uint32_t)); //to be used to queue the messages being sent on CAN line
-													//only 3 messages can be transmitted at once at the hardware level.
-	can_rx_queue = xQueueCreate(10, sizeof(uint32_t));
-
-
+    can_tx_queue = xQueueCreate(10, sizeof(uint32_t)); //to be used to queue the messages being sent on CAN line												//only 3 messages can be transmitted at once at the hardware level.
+    can_rx_queue = xQueueCreate(10, sizeof(uint32_t));
 	if(can_tx_queue != NULL)
-	{
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
-	}
+    {
+	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+    }
 
   /* USER CODE END Init */
 
@@ -155,13 +151,11 @@ void app_task_1Hz(void const *argument)
     /* Infinite loop */
     for (;;)
     {
-      app_afe_data_read();
-    	//xSemaphoreTake(can_task_semaphore_handle, 10);
-
-    	vTaskDelayUntil(&xLastWakeTime, xFrequency);
-    	//xSemaphoreGive(can_task_semaphore_handle);
+        app_afe_data_read();
+        //xSemaphoreTake(can_task_semaphore_handle, 10);
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+        //xSemaphoreGive(can_task_semaphore_handle);
     }
-
   /* USER CODE END app_task_1Hz */
 }
 
@@ -182,24 +176,22 @@ void app_task_10hz(void const *argument)
     /* Infinite loop */
     for (;;)
     {
-    //xSemaphoreTake(can_task_semaphore_handle, 1000);
-    if(counter%5==0)
-    	can_fcu_read_data();
-    if(counter%10 == 0)
-    {
-    	for(int i = 1;i<7;i++)
-    	    	{
-    	    		xQueueSend(can_tx_queue, &can_IDs[i], (TickType_t)10);
-    	    	}
+        //xSemaphoreTake(can_task_semaphore_handle, 1000);
+        if(counter%5==0)
+    	    can_fcu_read_data();
+        if(counter%10 == 0)
+        {
+            for(int i = 1;i<7;i++)
+            {
+                xQueueSend(can_tx_queue, &can_IDs[i], (TickType_t)10);
+            }
+        }
+        counter++;
+        xQueueSend(can_tx_queue, &can_IDs[0],(TickType_t)10); //GaugeVit
+        xQueueSend(can_tx_queue, &can_IDs[7],(TickType_t)10); //BMS Ovr
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+        //xSemaphoreGive(can_task_semaphore_handle);
     }
-    counter++;
-    xQueueSend(can_tx_queue, &can_IDs[0],(TickType_t)10); //GaugeVit
-    xQueueSend(can_tx_queue, &can_IDs[7],(TickType_t)10); //BMS Ovr
-    vTaskDelayUntil(&xLastWakeTime, xFrequency);
-    //xSemaphoreGive(can_task_semaphore_handle);
-    }
-
-
   /* USER CODE END app_task_10hz */
 }
 
@@ -221,27 +213,27 @@ void app_task_100hz(void const *argument)
     /* Infinite loop */
     for (;;)
     {
-    	if(counter%2 == 0)
-    	{
-    	  app_afe_can_message_update();
-    	}
-    		if(uxQueueMessagesWaiting(can_tx_queue) > 0)
-    		{
-    		//xSemaphoreTake(can_task_semaphore_handle, 10);
-    		if(xQueueReceive(can_tx_queue, &pReceive, 100) == pdPASS)
-    		{
-    		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-    		for(int i=0;i<9;i++)
-    			{
-    				if(pReceive == can_IDs[i])
-    				{
-    					(func_ptrs[i])();
-    					HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-    				}
-    			}
-    		}
-    		}
-    	vTaskDelayUntil(&xLastWakeTime, xFrequency);
+        if(counter%2 == 0)
+        {
+    	    app_afe_can_message_update();
+        }
+        if(uxQueueMessagesWaiting(can_tx_queue) > 0)
+        {
+        //xSemaphoreTake(can_task_semaphore_handle, 10);
+    	    if(xQueueReceive(can_tx_queue, &pReceive, 100) == pdPASS)
+    	    {
+    		    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+    		    for(int i=0;i<9;i++)
+    		    {
+    			    if(pReceive == can_IDs[i])
+    			    {
+    				    (func_ptrs[i])();
+    				    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+    			    }
+    		    }
+    	    }
+        }
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
     /* USER CODE END app_task_100hz */
 }
