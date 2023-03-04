@@ -26,54 +26,47 @@ BAT_AFE_vBRICK_D_t batAfeBrickD;
 BAT_GAUGE_OvrVIEW_t batGaugeOvr;
 BAT_GAUGE_ViT_t batGaugeViT;
 
-int16_t afe_data_read(void)
+int16_t app_afe_data_read(void)
 {
-  uint16_t data=0;
   uint8_t CellVoltageHolder = Cell1Voltage;
   int16_t ret_val = SYS_ERR;
   do
   {
-    if(SYS_OK == bq76952_get_device_number(&data))
-      AFE_data.device_number = data;
-    if(SYS_OK == bq76952_dir_cmd_read(StackVoltage, &data, 2))
-      AFE_data.stack_vol = data;
-    if(SYS_OK == bq76952_dir_cmd_read(PACKPinVoltage, &data, 2))
-      AFE_data.pack_vol = data;
-    if(SYS_OK == bq76952_dir_cmd_read(CC2Current, &data, 2))
-      AFE_data.pack_curr = data;
-    if(SYS_OK == bq76952_dir_cmd_read(TS1Temperature, &data, 2))
-    	AFE_data.temps[0] = data;
-    if(SYS_OK == bq76952_dir_cmd_read(TS3Temperature, &data, 2))
-      AFE_data.temps[1] = data;
-    for(uint8_t i=0;i<10;i++)
+    if(SYS_OK!= bq76952_get_device_number(AFE_data.device_number))
     {
-      do
-      {
-        if(SYS_OK == bq76952_dir_cmd_read(CellVoltageHolder, &data, 2))
-        {
-          AFE_data.cellvoltages[i] = data;
-          CellVoltageHolder+=2;
-        }
-      }while(false);
+      break;
     }
-
-    AFE_info.Device_Number = AFE_data.device_number;                 //Returns Device Number
-    AFE_info.Stack_Voltage = 0.01*(AFE_data.stack_vol);              //Returns Stack Voltage in Volts (V)
-    AFE_info.Pack_Voltage = 0.01*(AFE_data.pack_vol);                //Returns Pack Voltage in Volts (V)
-    AFE_info.Pack_Current = (AFE_data.pack_curr);                    //Returns Pack Current in Amperes (A)
-    AFE_info.Temperatures[0] = (0.1*(AFE_data.temps[0]))-273.15;     //Returns TS1 in  Degree Celcius (C)
-    AFE_info.Temperatures[1] = (0.1*(AFE_data.temps[1]))-273.15;     //Returns TS3 in Degree Celcius (C)
+    if(SYS_OK != bq76952_dir_cmd_read(StackVoltage, AFE_data.stack_vol, 2))
+    {
+      break;
+    }
+    if(SYS_OK != bq76952_dir_cmd_read(PACKPinVoltage, AFE_data.pack_vol, 2))
+    {
+      break;
+    }
+    if(SYS_OK != bq76952_dir_cmd_read(CC2Current, AFE_data.pack_curr, 2))
+    {
+      break;
+    }
+    if(SYS_OK != bq76952_dir_cmd_read(TS1Temperature, AFE_data.temps[0], 2))
+    {
+      break;
+    }
+    if(SYS_OK != bq76952_dir_cmd_read(TS3Temperature, AFE_data.temps[1], 2))
+    {
+      break;
+    }
     for(uint8_t i=0;i<10;i++)
     {
-      AFE_info.CellVoltages[i] = 0.001*(AFE_data.cellvoltages[i]);   //Returns Cell Voltages in Volts (V)
+        if(SYS_OK == bq76952_dir_cmd_read(CellVoltageHolder, AFE_data.cellvoltages[i], 2))
+          CellVoltageHolder+=2;
     }
     ret_val = SYS_OK;
   }while(false);
-
   return ret_val;
 }
 
-void data_afe_to_can(void)
+int16_t app_afe_can_message_update(void)
 {
 	batGaugeViT.BAT_gauge_vPack = AFE_data.pack_vol;
 	batGaugeViT.BAT_gauge_iPack = AFE_data.pack_curr;
