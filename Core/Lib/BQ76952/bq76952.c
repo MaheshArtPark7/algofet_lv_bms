@@ -25,8 +25,8 @@ uint8_t DDSG = 0;  // Fault state for Discharging
 
 //------------------------------------------------------------------------------
 // Static Functions declaration
-static uint8_t CRC8(uint8_t *ptr, uint8_t len);
-static uint8_t Checksum(uint8_t *ptr, uint8_t len);
+static uint8_t bq76952_CRC8(uint8_t *ptr, uint8_t len);
+static uint8_t bq76952_checksum(uint8_t *ptr, uint8_t len);
 extern int16_t bq76952_dir_cmd_read(uint8_t dirCmdRegAddr, uint16_t *pData, uint8_t len);
 static int16_t bq76952_dir_cmd_write(uint8_t dirCmdRegAddr, uint16_t dirCmd);
 static int16_t bq76952_write_RAM_register(uint16_t reg_address, uint16_t cmd, uint8_t datalen);
@@ -645,7 +645,7 @@ static int16_t bq76952_write_RAM_register (uint16_t reg_address, uint16_t cmd, u
   TX_RegData[2] = cmd & 0xff; //1st byte of data
   TX_RegData[3] = (cmd>>8) & 0xff;
 
-  TX_Buff[0] = Checksum(TX_RegData, SUB_CMD_LEN+datalen);
+  TX_Buff[0] = bq76952_checksum(TX_RegData, SUB_CMD_LEN+datalen);
   TX_Buff[1] = SUB_CMD_LEN + CHECKSUM_LEN + datalen;
   do
   {
@@ -685,7 +685,7 @@ static int16_t bq76952_read_RAM_register (uint16_t reg_address, uint16_t *pData)
   return ret_val;
 }
 
-static uint8_t Checksum(uint8_t *pData, uint8_t len)
+static uint8_t bq76952_checksum(uint8_t *pData, uint8_t len)
 // Calculates the checksum when writing to a RAM register. The checksum is the inverse of the sum of the bytes.
 {
   uint8_t i;
@@ -700,7 +700,7 @@ static uint8_t Checksum(uint8_t *pData, uint8_t len)
 }
 
 
-static uint8_t CRC8(uint8_t *pData, uint8_t len)
+static uint8_t bq76952_CRC8(uint8_t *pData, uint8_t len)
 //Calculates CRC8 for passed bytes.
 {
   uint8_t i;
@@ -741,7 +741,7 @@ static int16_t bq76952_write_sub_cmd(uint16_t subCmdRegAddr, uint16_t subCmd)
   {
     pTxData[0] = subCmdRegAddrWRITE + i;
     pTxData[1] = subCmd >> (i * 8); //To retrieve the lower byte and then the higher byte subsequently
-    pTxData[2] = CRC8(pTxData, SUB_CMD_LEN);
+    pTxData[2] = bq76952_CRC8(pTxData, SUB_CMD_LEN);
     TxByte = pTxData[0] | (pTxData[1] << 8);
     do
     {
@@ -789,7 +789,7 @@ static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint16_t 
     {
       pTxData[0] = subCmdRegAddr + i;
       pTxData[1] = 0xFF;
-      pTxData[2] = CRC8(pTxData, SUB_CMD_LEN);
+      pTxData[2] = bq76952_CRC8(pTxData, SUB_CMD_LEN);
       TxByte = pTxData[0];
       retry_cnt = 0;
       do
@@ -832,7 +832,7 @@ static int16_t bq76952_dir_cmd_write(uint8_t dirCmdRegAddr, uint16_t dirCmd)
   {
     pTxData[0] = dirCmdRegAddrWRITE + i;
     pTxData[1] = dirCmd >> (i * 8);
-    pTxData[2] = CRC8(pTxData, SUB_CMD_LEN);
+    pTxData[2] = bq76952_CRC8(pTxData, SUB_CMD_LEN);
     TxByte = pTxData[0] | (pTxData[1] << 8);
     do
     {
@@ -880,7 +880,7 @@ extern int16_t bq76952_dir_cmd_read(uint8_t dirCmdRegAddr, uint16_t *pData, uint
     {
       pTxData[0] = dirCmdRegAddr + i;
       pTxData[1] = 0xFF;
-      pTxData[2] = CRC8(pTxData, SUB_CMD_LEN);
+      pTxData[2] = bq76952_CRC8(pTxData, SUB_CMD_LEN);
       TxByte = pTxData[0];
       retry_cnt = 0;
       do
