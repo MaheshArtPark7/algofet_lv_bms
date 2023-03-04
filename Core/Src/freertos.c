@@ -155,7 +155,7 @@ void app_task_1Hz(void const *argument)
     /* Infinite loop */
     for (;;)
     {
-		afe_data_read();
+      app_afe_data_read();
     	//xSemaphoreTake(can_task_semaphore_handle, 10);
 
     	vTaskDelayUntil(&xLastWakeTime, xFrequency);
@@ -223,7 +223,7 @@ void app_task_100hz(void const *argument)
     {
     	if(counter%2 == 0)
     	{
-    		data_afe_to_can();
+    	  app_afe_can_message_update();
     	}
     		if(uxQueueMessagesWaiting(can_tx_queue) > 0)
     		{
