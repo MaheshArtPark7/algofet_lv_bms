@@ -56,7 +56,7 @@ void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   HAL_CAN_Start(&hcan1);
-  rx_header_fcu_state();
+  app_can_rx_header_fcu_state();
 
   /* USER CODE END CAN1_Init 2 */
 

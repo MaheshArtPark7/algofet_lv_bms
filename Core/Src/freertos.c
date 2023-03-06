@@ -49,7 +49,7 @@ extern void(*func_ptrs[8])();
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
-uint32_t can_IDs[8] = {0x1ff610, 0x1ff611, 0x1ff710, 0x1ff711, 0x1ff712, 0x1ff713, 0x1ff810, 0x1ff820};
+extern uint32_t can_IDs[8];
 
 /* USER CODE END Variables */
 osThreadId APP_1HZ_TASKHandle;
@@ -178,7 +178,7 @@ void app_task_10hz(void const *argument)
     {
         //xSemaphoreTake(can_task_semaphore_handle, 1000);
         if(counter%5==0)
-    	    can_fcu_read_data();
+    	    app_can_fcu_read_data();
         if(counter%10 == 0)
         {
             for(int i = 1;i<7;i++)
@@ -222,15 +222,7 @@ void app_task_100hz(void const *argument)
         //xSemaphoreTake(can_task_semaphore_handle, 10);
     	    if(xQueueReceive(can_tx_queue, &pReceive, 100) == pdPASS)
     	    {
-    		    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-    		    for(int i=0;i<9;i++)
-    		    {
-    			    if(pReceive == can_IDs[i])
-    			    {
-    				    (func_ptrs[i])();
-    				    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
-    			    }
-    		    }
+    	    	app_can_send_tx_msg(pReceive);
     	    }
         }
         vTaskDelayUntil(&xLastWakeTime, xFrequency);

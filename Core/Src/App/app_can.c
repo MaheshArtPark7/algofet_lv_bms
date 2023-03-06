@@ -35,34 +35,40 @@ CAN_TxHeaderTypeDef TxBrickDViT;
 
 CAN_RxHeaderTypeDef RxHeader;
 
-void tx_header_bat_bms_ovr();
-void tx_header_bat_bms_ext_temp();
-void tx_header_bat_gauge_Vit();
-void tx_header_bat_brickA_Vit();
-void tx_header_bat_brickB_Vit();
-void tx_header_bat_brickC_Vit();
-void tx_header_bat_brickD_Vit();
-void rx_header_fcu_state();
-void set_filter_config();
+int16_t app_can_tx_header_bat_bms_ovr();
+int16_t app_can_tx_header_bat_bms_ext_temp();
+int16_t app_can_tx_header_bat_gauge_ovr();
+int16_t app_can_tx_header_bat_gauge_Vit();
+int16_t app_can_tx_header_bat_brickA_Vit();
+int16_t app_can_tx_header_bat_brickB_Vit();
+int16_t app_can_tx_header_bat_brickC_Vit();
+int16_t app_can_tx_header_bat_brickD_Vit();
+int16_t app_can_rx_header_fcu_state();
+int16_t app_can_set_filter_config();
 
+int16_t app_can_send_tx_msg(uint32_t canId);
 
-void can_bat_gauge_ovr_write_data(void);
-void can_bat_gauge_vit_write_data(void);
-void can_bms_ovr_write_data(void);
-void can_bms_exttemp_write_data(void);
-void can_bat_afe_brickA_write_data(void);
-void can_bat_afe_brickB_write_data(void);
-void can_bat_afe_brickC_write_data(void);
-void can_bat_afe_brickD_write_data(void);
+int16_t app_can_bat_gauge_ovr_write_data(void);
+int16_t app_can_bat_gauge_vit_write_data(void);
+int16_t app_can_bms_ovr_write_data(void);
+int16_t app_can_bms_exttemp_write_data(void);
+int16_t app_can_bat_afe_brickA_write_data(void);
+int16_t app_can_bat_afe_brickB_write_data(void);
+int16_t app_can_bat_afe_brickC_write_data(void);
+int16_t app_can_bat_afe_brickD_write_data(void);
 
-void(*func_ptrs[8])() = {can_bat_gauge_ovr_write_data,
-                         can_bat_gauge_vit_write_data,
-						 can_bms_ovr_write_data,
-						 can_bms_exttemp_write_data,
-						 can_bat_afe_brickA_write_data,
-						 can_bat_afe_brickB_write_data,
-						 can_bat_afe_brickC_write_data,
-						 can_bat_afe_brickD_write_data};
+int16_t(*func_ptrs[8])() = {app_can_bat_gauge_ovr_write_data,
+                         app_can_bat_gauge_vit_write_data,
+						 app_can_bms_ovr_write_data,
+						 app_can_bms_exttemp_write_data,
+						 app_can_bat_afe_brickA_write_data,
+						 app_can_bat_afe_brickB_write_data,
+						 app_can_bat_afe_brickC_write_data,
+						 app_can_bat_afe_brickD_write_data};
+
+uint32_t can_IDs[8] = {0x1ff610, 0x1ff611, 0x1ff710,
+		               0x1ff711, 0x1ff712, 0x1ff713,
+					   0x1ff810, 0x1ff820};
 
 uint32_t mailbox1Hz;
 uint32_t mailbox10Hz;
@@ -78,7 +84,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     //HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_13);
 }
 
-void tx_header_bat_bms_ovr()
+int16_t app_can_tx_header_bat_bms_ovr()
 {
     TxBatBmsOvr.DLC = BAT_BMS_OvrVIEW_DLC;
     TxBatBmsOvr.ExtId = 0;
@@ -88,7 +94,7 @@ void tx_header_bat_bms_ovr()
     TxBatBmsOvr.TransmitGlobalTime = DISABLE;
 }
 
-void tx_header_bat_bms_ext_temp()
+int16_t app_can_tx_header_bat_bms_ext_temp()
 {
     TxBatExtTemp.DLC = BAT_BMS_ExtTemp_DLC;
     TxBatExtTemp.ExtId = 0;
@@ -98,7 +104,7 @@ void tx_header_bat_bms_ext_temp()
     TxBatExtTemp.TransmitGlobalTime = DISABLE;
 }
 
-void tx_header_bat_gauge_ovr()
+int16_t app_can_tx_header_bat_gauge_ovr()
 {
     TxBatGaugeOvr.DLC = BAT_GAUGE_OvrVIEW_DLC;
     TxBatGaugeOvr.ExtId = 0;
@@ -108,7 +114,7 @@ void tx_header_bat_gauge_ovr()
     TxBatGaugeOvr.TransmitGlobalTime = DISABLE;
 }
 
-void tx_header_bat_gauge_Vit()
+int16_t app_can_tx_header_bat_gauge_Vit()
 {
     TxBatGaugeVit.DLC = BAT_GAUGE_ViT_DLC;
     TxBatGaugeVit.ExtId = 0;
@@ -118,7 +124,7 @@ void tx_header_bat_gauge_Vit()
     TxBatGaugeVit.TransmitGlobalTime = DISABLE;
 }
 
-void tx_header_bat_brickA_Vit()
+int16_t app_can_tx_header_bat_brickA_Vit()
 {
     TxBrickAViT.DLC = BAT_AFE_vBRICK_A_DLC;
     TxBrickAViT.ExtId = 0;
@@ -128,7 +134,7 @@ void tx_header_bat_brickA_Vit()
     TxBrickAViT.TransmitGlobalTime = DISABLE;
 }
 
-void tx_header_bat_brickB_Vit()
+int16_t app_can_tx_header_bat_brickB_Vit()
 {
     TxBrickBViT.DLC = BAT_AFE_vBRICK_B_DLC;
     TxBrickBViT.ExtId = 0;
@@ -138,7 +144,7 @@ void tx_header_bat_brickB_Vit()
     TxBrickBViT.TransmitGlobalTime = DISABLE;
 }
 
-void tx_header_bat_brickC_Vit()
+int16_t app_can_tx_header_bat_brickC_Vit()
 {
     TxBrickCViT.DLC = BAT_AFE_vBRICK_C_DLC;
     TxBrickCViT.ExtId = 0;
@@ -148,7 +154,7 @@ void tx_header_bat_brickC_Vit()
     TxBrickCViT.TransmitGlobalTime = DISABLE;
 }
 
-void tx_header_bat_brickD_vit()
+int16_t tx_header_bat_brickD_vit()
 {
     TxBrickDViT.DLC = BAT_AFE_vBRICK_D_DLC;
     TxBrickDViT.ExtId = 0;
@@ -158,7 +164,7 @@ void tx_header_bat_brickD_vit()
     TxBrickDViT.TransmitGlobalTime = DISABLE;
 }
 
-void rx_header_fcu_state()
+int16_t app_can_rx_header_fcu_state()
 {
     RxHeader.DLC = 8;
     RxHeader.ExtId = 0;
@@ -167,7 +173,7 @@ void rx_header_fcu_state()
     RxHeader.StdId = 0x00;
 }
 
-void set_filter_config()
+int16_t app_can_set_filter_config()
 {
     filterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
     filterConfig.FilterActivation = ENABLE;
@@ -183,73 +189,75 @@ void set_filter_config()
     HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
 }
 
-void can_bat_gauge_ovr_write_data(void)
+int16_t app_can_send_tx_msg(uint32_t canId)
 {
-    tx_header_bat_gauge_ovr();
-    id = Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGaugeOvr, &canFrame);
-    if(id == 0x1ff810)
+	for(int i=0; i<9; i++)
+	{
+		if(canId == can_IDs[i])
+		{
+			(func_ptrs[i])();
+		}
+	}
+}
+int16_t app_can_bat_gauge_ovr_write_data(void)
+{
+    app_can_tx_header_bat_gauge_ovr();
+    Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGaugeOvr, &canFrame);
     HAL_CAN_AddTxMessage(&hcan1, &TxBatGaugeOvr, canFrame.Data, &mailbox1Hz);
 }
 
-void can_bat_gauge_vit_write_data(void)
+int16_t app_can_bat_gauge_vit_write_data(void)
 {
-    tx_header_bat_gauge_Vit();
-    id = Pack_BAT_GAUGE_ViT_can_codegen(&batGaugeViT, &canFrame);
-    if(id == 0x1ff820)
+    app_can_tx_header_bat_gauge_Vit();
+    Pack_BAT_GAUGE_ViT_can_codegen(&batGaugeViT, &canFrame);
     HAL_CAN_AddTxMessage(&hcan1, &TxBatGaugeVit, canFrame.Data, &mailbox10Hz);
 }
 
-void can_bms_ovr_write_data(void)
+int16_t app_can_bms_ovr_write_data(void)
 {
-    tx_header_bat_bms_ovr();
-    id = Pack_BAT_BMS_OvrVIEW_can_codegen(&batBmsOvr, &canFrame);
-    if(id == 0x1ff610)
+    app_can_tx_header_bat_bms_ovr();
+    Pack_BAT_BMS_OvrVIEW_can_codegen(&batBmsOvr, &canFrame);
     HAL_CAN_AddTxMessage(&hcan1, &TxBatBmsOvr, canFrame.Data, &mailbox10Hz);
 }
 
-void can_bms_exttemp_write_data(void)
+int16_t app_can_bms_exttemp_write_data(void)
 {
-    tx_header_bat_bms_ext_temp();
-    id = Pack_BAT_BMS_ExtTemp_can_codegen(&batBmsExtTemp, &canFrame);
-    if(id == 0x1ff611)
+    app_can_tx_header_bat_bms_ext_temp();
+    Pack_BAT_BMS_ExtTemp_can_codegen(&batBmsExtTemp, &canFrame);
     HAL_CAN_AddTxMessage(&hcan1, &TxBatExtTemp, canFrame.Data, &mailbox1Hz);
 }
 
-void can_bat_afe_brickA_write_data(void)
+int16_t app_can_bat_afe_brickA_write_data(void)
 {
-    tx_header_bat_brickA_Vit();
-    id = Pack_BAT_AFE_vBRICK_A_can_codegen(&batAfeBrickA, &canFrame);
-    if(id == 0x1ff710)
+    app_can_tx_header_bat_brickA_Vit();
+    Pack_BAT_AFE_vBRICK_A_can_codegen(&batAfeBrickA, &canFrame);
     HAL_CAN_AddTxMessage(&hcan1, &TxBrickAViT, canFrame.Data, &mailbox1Hz);
 }
 
-void can_bat_afe_brickB_write_data(void)
+int16_t app_can_bat_afe_brickB_write_data(void)
 {
-    tx_header_bat_brickB_Vit();
-    id = Pack_BAT_AFE_vBRICK_B_can_codegen(&batAfeBrickB, &canFrame);
-    if(id == 0x1ff711)
+    app_can_tx_header_bat_brickB_Vit();
+    Pack_BAT_AFE_vBRICK_B_can_codegen(&batAfeBrickB, &canFrame);
     HAL_CAN_AddTxMessage(&hcan1, &TxBrickBViT, canFrame.Data, &mailbox1Hz);
 }
 
-void can_bat_afe_brickC_write_data(void)
+int16_t app_can_bat_afe_brickC_write_data(void)
 {
-    tx_header_bat_brickC_Vit();
-    id = Pack_BAT_AFE_vBRICK_C_can_codegen(&batAfeBrickC, &canFrame);
-    if(id == 0x1ff712)
+    app_can_tx_header_bat_brickC_Vit();
+    Pack_BAT_AFE_vBRICK_C_can_codegen(&batAfeBrickC, &canFrame);
     HAL_CAN_AddTxMessage(&hcan1, &TxBrickCViT, canFrame.Data, &mailbox1Hz);
 }
 
-void can_bat_afe_brickD_write_data(void)
+int16_t app_can_bat_afe_brickD_write_data(void)
 {
     tx_header_bat_brickD_vit();
-    id = Pack_BAT_AFE_vBRICK_D_can_codegen(&batAfeBrickD, &canFrame);
-    if(id == 0x1ff713)
+    Pack_BAT_AFE_vBRICK_D_can_codegen(&batAfeBrickD, &canFrame);
     HAL_CAN_AddTxMessage(&hcan1, &TxBrickDViT, canFrame.Data, &mailbox1Hz);
 }
 
-void can_fcu_read_data()
+int16_t app_can_fcu_read_data()
 {
-    set_filter_config();
+    app_can_set_filter_config();
     if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK)
     {
         id = Unpack_FCU_STATE_REQUEST_can_codegen(&fcuState, &state, 1);
