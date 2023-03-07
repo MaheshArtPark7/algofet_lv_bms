@@ -4,11 +4,11 @@
  *  Created on: 24-Aug-2022
  */
 
-#include "../BQ76942/bq76942.h"
+#include "bq76942.h"
 
 #include "spi.h"
 #include "app_afe.h"
-#include "../BQ76942/bq76942_defines.h"
+#include "bq76942_defines.h"
 
 extern SPI_HandleTypeDef hspi1;
 

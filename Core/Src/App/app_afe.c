@@ -8,8 +8,8 @@
 #include "app_defines.h"
 #include "main.h"
 #include "can_codegen.h"
-#include "../../Lib/BQ76942/bq76942.h"
-#include "../../Lib/BQ76942/bq76942_defines.h"
+#include "bq76942.h"
+#include "bq76942_defines.h"
 
 
 TS_FETcotrol_s AFE_FETcontrol;
