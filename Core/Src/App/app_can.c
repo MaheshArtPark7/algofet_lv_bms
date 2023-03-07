@@ -420,31 +420,31 @@ int16_t app_can_fcu_read_data()
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
-				    bq76952_FETs_OFF(); // replace with all fets off function call
+				    bq76942_FETs_OFF(); // replace with all fets off function call
 				    break;
 			    case 1:
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
-				    bq76952_FETs_ON(); //replace with all fets on function call
+				    bq76942_FETs_ON(); //replace with all fets on function call
 				    break;
 			    case 2:
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
-				    bq76952_AFE_reset();// replace with afe reset function call
+				    bq76942_AFE_reset();// replace with afe reset function call
 				    break;
 			    case 3:
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
-				    bq76952_Charge();
+				    bq76942_Charge();
 				    break;
 			    case 4:
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);
 				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);
-				    bq76952_Discharge();
+				    bq76942_Discharge();
 				    break;
 			    default:
 				    break;

@@ -6,9 +6,9 @@
 
 #include "app_afe.h"
 #include "app_defines.h"
-#include "bq76952.h"
+#include "bq76942.h"
 #include "main.h"
-#include "bq76952_defines.h"
+#include "bq76942_defines.h"
 #include "can_codegen.h"
 
 
@@ -31,33 +31,33 @@ int16_t app_afe_data_read(void)
   int16_t ret_val = SYS_ERR;
   do
   {
-    if(SYS_OK!= bq76952_get_device_number(&AFE_data.device_number))
+    if(SYS_OK!= bq76942_get_device_number(&AFE_data.device_number))
     {
       break;
     }
-    if(SYS_OK != bq76952_dir_cmd_read(StackVoltage, &AFE_data.stack_vol, 2))
+    if(SYS_OK != bq76942_dir_cmd_read(StackVoltage, &AFE_data.stack_vol, 2))
     {
       break;
     }
-    if(SYS_OK != bq76952_dir_cmd_read(PACKPinVoltage, &AFE_data.pack_vol, 2))
+    if(SYS_OK != bq76942_dir_cmd_read(PACKPinVoltage, &AFE_data.pack_vol, 2))
     {
       break;
     }
-    if(SYS_OK != bq76952_dir_cmd_read(CC2Current, &AFE_data.pack_curr, 2))
+    if(SYS_OK != bq76942_dir_cmd_read(CC2Current, &AFE_data.pack_curr, 2))
     {
       break;
     }
-    if(SYS_OK != bq76952_dir_cmd_read(TS1Temperature,&AFE_data.temps[0], 2))
+    if(SYS_OK != bq76942_dir_cmd_read(TS1Temperature,&AFE_data.temps[0], 2))
     {
       break;
     }
-    if(SYS_OK != bq76952_dir_cmd_read(TS3Temperature, &AFE_data.temps[1], 2))
+    if(SYS_OK != bq76942_dir_cmd_read(TS3Temperature, &AFE_data.temps[1], 2))
     {
       break;
     }
     for(uint8_t i=0;i<10;i++)
     {
-        if(SYS_OK == bq76952_dir_cmd_read(CellVoltageHolder, &AFE_data.cellvoltages[i], 2))
+        if(SYS_OK == bq76942_dir_cmd_read(CellVoltageHolder, &AFE_data.cellvoltages[i], 2))
           CellVoltageHolder+=2;
     }
     ret_val = SYS_OK;
@@ -94,7 +94,7 @@ int16_t app_afe_init(void)
 	do
 	{
 		HAL_GPIO_WritePin(SP1_CS_GPIO_Port, SP1_CS_Pin, 1);
-	  bq76952_init();
+	  bq76942_init();
 		ret_val = SYS_OK;
 	}while(false);
 
