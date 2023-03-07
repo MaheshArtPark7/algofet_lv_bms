@@ -28,19 +28,6 @@ typedef struct
 
 typedef struct
 {
-    uint16_t Device_Number;       //Stores Device Number
-    float Stack_Voltage;          //Stores Stack Voltage
-    float Pack_Voltage;           //Stores Pack Voltage
-    float Load_Voltage;           //Stores Load Voltage
-    float Pack_Current;           //Stores Pack Current
-    float CellVoltages[10];    //Stores Cell Voltages (1-10)
-    float Temperatures[2];     //Stores Temperatures TS1 and TS3
-
-}TS_AFEinfo_s;
-
-
-typedef struct
-{
     uint16_t device_number;
     uint16_t stack_vol;
     uint16_t pack_vol;

@@ -87,12 +87,12 @@ int16_t bq76952_init(void)
     AFE_RAMwrite.prechargeStopVoltage = 0x0AF0;   //2800mV
     AFE_RAMwrite.TS3config = 0x07;                //Default for TS3: 0X07 | Default for TS1: 0x07
 
-    bq76952_vCellMode();
-    bq76952_FETs_Control();
-    bq76952_TS3config();
+    //bq76952_vCellMode();
+    //bq76952_FETs_Control();
+    //bq76952_TS3config();
 
         //RESET #Resets the Bq769x2 Registers
-        //bq76952_AFE_reset();
+        bq76952_AFE_reset();
 
         // Enter config update mode
         //bq76952_set_config_update();
@@ -647,6 +647,8 @@ static int16_t bq76952_write_RAM_register (uint16_t reg_address, uint16_t cmd, u
 
   TX_Buff[0] = bq76952_checksum(TX_RegData, SUB_CMD_LEN+datalen);
   TX_Buff[1] = SUB_CMD_LEN + CHECKSUM_LEN + datalen;
+  TX_Buffer = (TX_Buff[1]<<8)| TX_Buff[0];
+
   do
   {
     if(SYS_OK != bq76952_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, reg_address)) //Writes register address to Subcommand Memory 0x3E
@@ -657,7 +659,7 @@ static int16_t bq76952_write_RAM_register (uint16_t reg_address, uint16_t cmd, u
     {
       break;
     }
-    if(SYS_OK != bq76952_write_sub_cmd(RAM_REG_LSB_ADDR, TX_Buff))  //Writes Checksum and Datalength to 0x60 and 0x61
+    if(SYS_OK != bq76952_write_sub_cmd(RAM_REG_LSB_ADDR, TX_Buffer))  //Writes Checksum and Datalength to 0x60 and 0x61
     {
       break;
     }
@@ -676,7 +678,7 @@ static int16_t bq76952_read_RAM_register (uint16_t reg_address, uint16_t *pData)
     {
       break;
     }
-    if(SYS_OK != bq76952_read_sub_cmd_data_buffer(SUB_CMD_DATA_BUFF_ADDR, pData, 2))
+    if(SYS_OK != bq76952_read_sub_cmd_data_buffer(SUB_CMD_DATA_BUFF_ADDR, &pData, 2))
     {
       break;
     }
@@ -777,10 +779,10 @@ static int16_t bq76952_read_sub_cmd_data_buffer(uint8_t subCmdRegAddr, uint16_t 
     {
       break;
     }
-    if(pData == NULL)
-    {
-      break;
-    }
+//    if(pData == NULL)
+//    {
+//      break;
+//    }
     uint8_t pTxData[SPI_SUB_CMD_FRAME_LEN] = { 0 };
     uint8_t pRxData[SPI_SUB_CMD_FRAME_LEN] = { 0 };
     uint8_t retry_cnt = 0;

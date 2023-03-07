@@ -30,7 +30,7 @@
 #define RAM_REG_LSB_ADDR  (uint8_t)0x60u
 #define RAM_REG_MSB_ADDR  (uint8_t)0x61u
 
-#define SUB_CMD_DATA_BUFF_LEN_MAX 32 // 32 Bytes
+#define SUB_CMD_DATA_BUFF_LEN_MAX 4 // 4 Bytes
 #define DIR_CMD_DATA_BUFF_LEN_MAX 8 // 32 Bytes
 
 //------------------------------------------------------------------------------
