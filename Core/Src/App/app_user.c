@@ -3,4 +3,4 @@
  *
  */
 
-#include <bq76942.h>
+#include "../../Lib/BQ76942/bq76942.h"

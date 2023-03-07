@@ -18,7 +18,7 @@ RM := rm -rf
 -include Core/Startup/subdir.mk
 -include Core/Src/App/subdir.mk
 -include Core/Src/subdir.mk
--include Core/Lib/BQ76952/subdir.mk
+-include Core/Lib/BQ76942/subdir.mk
 -include Core/CodeGen/can/source/subdir.mk
 -include objects.mk
 
