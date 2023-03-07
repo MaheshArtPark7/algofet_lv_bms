@@ -13,6 +13,7 @@
 "./Core/Src/App/app_task_100hz.o"
 "./Core/Src/App/app_task_10hz.o"
 "./Core/Src/App/app_task_1hz.o"
+"./Core/Src/App/app_user.o"
 "./Core/Src/adc.o"
 "./Core/Src/can.o"
 "./Core/Src/dma.o"
