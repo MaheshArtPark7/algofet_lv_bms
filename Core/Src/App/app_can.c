@@ -86,95 +86,144 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
 int16_t app_can_tx_header_bat_bms_ovr()
 {
+	int16_t ret_val = SYS_ERR;
+	do{
     TxBatBmsOvr.DLC = BAT_BMS_OvrVIEW_DLC;
     TxBatBmsOvr.ExtId = 0;
     TxBatBmsOvr.IDE = CAN_ID_STD;
     TxBatBmsOvr.RTR = CAN_RTR_DATA;
     TxBatBmsOvr.StdId = BAT_BMS_OvrVIEW_CANID;
     TxBatBmsOvr.TransmitGlobalTime = DISABLE;
+    ret_val = SYS_OK;
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_tx_header_bat_bms_ext_temp()
 {
+	int16_t ret_val = SYS_ERR;
+	do{
     TxBatExtTemp.DLC = BAT_BMS_ExtTemp_DLC;
     TxBatExtTemp.ExtId = 0;
     TxBatExtTemp.IDE = CAN_ID_STD;
     TxBatExtTemp.RTR = CAN_RTR_DATA;
     TxBatExtTemp.StdId = BAT_BMS_ExtTemp_CANID;
     TxBatExtTemp.TransmitGlobalTime = DISABLE;
+    ret_val = SYS_OK;
+	}while(false);
+    return ret_val;
 }
 
 int16_t app_can_tx_header_bat_gauge_ovr()
 {
-    TxBatGaugeOvr.DLC = BAT_GAUGE_OvrVIEW_DLC;
+	int16_t ret_val = SYS_ERR;
+    do{
+	TxBatGaugeOvr.DLC = BAT_GAUGE_OvrVIEW_DLC;
     TxBatGaugeOvr.ExtId = 0;
     TxBatGaugeOvr.IDE = CAN_ID_STD;
     TxBatGaugeOvr.RTR = CAN_RTR_DATA;
     TxBatGaugeOvr.StdId = BAT_GAUGE_OvrVIEW_CANID;
     TxBatGaugeOvr.TransmitGlobalTime = DISABLE;
+    ret_val = SYS_OK;
+    }while(false);
+    return ret_val;
 }
 
 int16_t app_can_tx_header_bat_gauge_Vit()
 {
+	int16_t ret_val = SYS_ERR;
+	do
+	{
     TxBatGaugeVit.DLC = BAT_GAUGE_ViT_DLC;
     TxBatGaugeVit.ExtId = 0;
     TxBatGaugeVit.IDE = CAN_ID_STD;
     TxBatGaugeVit.RTR = CAN_RTR_DATA;
     TxBatGaugeVit.StdId = BAT_GAUGE_ViT_CANID;
     TxBatGaugeVit.TransmitGlobalTime = DISABLE;
+    ret_val = SYS_OK;
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_tx_header_bat_brickA_Vit()
 {
+	int16_t ret_val = SYS_ERR;
+	do
+	{
     TxBrickAViT.DLC = BAT_AFE_vBRICK_A_DLC;
     TxBrickAViT.ExtId = 0;
     TxBrickAViT.IDE = CAN_ID_STD;
     TxBrickAViT.RTR = CAN_RTR_DATA;
     TxBrickAViT.StdId = BAT_AFE_vBRICK_A_CANID;
     TxBrickAViT.TransmitGlobalTime = DISABLE;
+    ret_val = SYS_OK;
+	}while(false);
+    return ret_val;
 }
 
 int16_t app_can_tx_header_bat_brickB_Vit()
 {
+	int16_t ret_val = SYS_ERR;
+	do{
     TxBrickBViT.DLC = BAT_AFE_vBRICK_B_DLC;
     TxBrickBViT.ExtId = 0;
     TxBrickBViT.IDE = CAN_ID_STD;
     TxBrickBViT.RTR = CAN_RTR_DATA;
     TxBrickBViT.StdId = BAT_AFE_vBRICK_B_CANID;
     TxBrickBViT.TransmitGlobalTime = DISABLE;
+    ret_val = SYS_OK;
+	}while(false);
+    return ret_val;
 }
 
 int16_t app_can_tx_header_bat_brickC_Vit()
 {
+	int16_t ret_val = SYS_ERR;
+	do{
     TxBrickCViT.DLC = BAT_AFE_vBRICK_C_DLC;
     TxBrickCViT.ExtId = 0;
     TxBrickCViT.IDE = CAN_ID_STD;
     TxBrickCViT.RTR = CAN_RTR_DATA;
     TxBrickCViT.StdId = BAT_AFE_vBRICK_C_CANID;
     TxBrickCViT.TransmitGlobalTime = DISABLE;
+    ret_val = SYS_OK;
+	}while(false);
+    return ret_val;
 }
 
 int16_t tx_header_bat_brickD_vit()
 {
-    TxBrickDViT.DLC = BAT_AFE_vBRICK_D_DLC;
+	int16_t ret_val = SYS_ERR;
+	do{
+	TxBrickDViT.DLC = BAT_AFE_vBRICK_D_DLC;
     TxBrickDViT.ExtId = 0;
     TxBrickDViT.IDE = CAN_ID_STD;
     TxBrickDViT.RTR = CAN_RTR_DATA;
     TxBrickDViT.StdId = BAT_AFE_vBRICK_D_CANID;
     TxBrickDViT.TransmitGlobalTime = DISABLE;
+    ret_val = SYS_OK;
+	}while(false);
+    return ret_val;
 }
 
 int16_t app_can_rx_header_fcu_state()
 {
+	int16_t ret_val = SYS_ERR;
+	do{
     RxHeader.DLC = 8;
     RxHeader.ExtId = 0;
     RxHeader.IDE = CAN_ID_STD;
     RxHeader.RTR = CAN_RTR_REMOTE;
     RxHeader.StdId = 0x00;
+    ret_val = SYS_OK;
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_set_filter_config()
 {
+	int16_t ret_val = SYS_ERR;
+	do{
     filterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
     filterConfig.FilterActivation = ENABLE;
     filterConfig.FilterBank = 2;
@@ -185,116 +234,222 @@ int16_t app_can_set_filter_config()
     filterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
     filterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
     filterConfig.SlaveStartFilterBank = 3;
-
-    HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
+    if(HAL_CAN_ConfigFilter(&hcan1, &filterConfig) == SYS_OK)
+    {
+    	ret_val = SYS_OK;
+    }
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_send_tx_msg(uint32_t canId)
 {
-	for(int i=0; i<9; i++)
-	{
+	int16_t ret_val = SYS_ERR;
+	int i = 0;
+	do{
 		if(canId == can_IDs[i])
 		{
 			(func_ptrs[i])();
+			ret_val = SYS_OK;
 		}
-	}
+		i++;
+	  }while(i<9);
+	return ret_val;
 }
+
 int16_t app_can_bat_gauge_ovr_write_data(void)
 {
-    app_can_tx_header_bat_gauge_ovr();
-    Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGaugeOvr, &canFrame);
-    HAL_CAN_AddTxMessage(&hcan1, &TxBatGaugeOvr, canFrame.Data, &mailbox1Hz);
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+        if(SYS_OK!=app_can_tx_header_bat_gauge_ovr())
+        {
+    	    break;
+        }
+        Pack_BAT_GAUGE_OvrVIEW_can_codegen(&batGaugeOvr, &canFrame);
+        if(HAL_CAN_AddTxMessage(&hcan1, &TxBatGaugeOvr, canFrame.Data, &mailbox1Hz) == SYS_OK)
+        {
+        	ret_val = SYS_OK;
+        }
+    }while(false);
+    return ret_val;
 }
 
 int16_t app_can_bat_gauge_vit_write_data(void)
 {
-    app_can_tx_header_bat_gauge_Vit();
-    Pack_BAT_GAUGE_ViT_can_codegen(&batGaugeViT, &canFrame);
-    HAL_CAN_AddTxMessage(&hcan1, &TxBatGaugeVit, canFrame.Data, &mailbox10Hz);
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+        if(SYS_OK != app_can_tx_header_bat_gauge_Vit())
+        {
+        	break;
+        }
+        Pack_BAT_GAUGE_ViT_can_codegen(&batGaugeViT, &canFrame);
+        if(HAL_CAN_AddTxMessage(&hcan1, &TxBatGaugeVit, canFrame.Data, &mailbox10Hz) == SYS_OK)
+        {
+        	ret_val = SYS_OK;
+        }
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_bms_ovr_write_data(void)
 {
-    app_can_tx_header_bat_bms_ovr();
-    Pack_BAT_BMS_OvrVIEW_can_codegen(&batBmsOvr, &canFrame);
-    HAL_CAN_AddTxMessage(&hcan1, &TxBatBmsOvr, canFrame.Data, &mailbox10Hz);
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+        if(SYS_OK != app_can_tx_header_bat_bms_ovr())
+        {
+        	break;
+        }
+        Pack_BAT_BMS_OvrVIEW_can_codegen(&batBmsOvr, &canFrame);
+        if(HAL_CAN_AddTxMessage(&hcan1, &TxBatBmsOvr, canFrame.Data, &mailbox10Hz) == SYS_OK)
+        {
+        	ret_val = SYS_OK;
+        }
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_bms_exttemp_write_data(void)
 {
-    app_can_tx_header_bat_bms_ext_temp();
-    Pack_BAT_BMS_ExtTemp_can_codegen(&batBmsExtTemp, &canFrame);
-    HAL_CAN_AddTxMessage(&hcan1, &TxBatExtTemp, canFrame.Data, &mailbox1Hz);
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+        if(SYS_OK != app_can_tx_header_bat_bms_ext_temp())
+        {
+        	break;
+        }
+        Pack_BAT_BMS_ExtTemp_can_codegen(&batBmsExtTemp, &canFrame);
+        if(HAL_CAN_AddTxMessage(&hcan1, &TxBatExtTemp, canFrame.Data, &mailbox1Hz) == SYS_OK)
+        {
+        	ret_val = SYS_OK;
+        }
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_bat_afe_brickA_write_data(void)
 {
-    app_can_tx_header_bat_brickA_Vit();
-    Pack_BAT_AFE_vBRICK_A_can_codegen(&batAfeBrickA, &canFrame);
-    HAL_CAN_AddTxMessage(&hcan1, &TxBrickAViT, canFrame.Data, &mailbox1Hz);
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+        if(SYS_OK != app_can_tx_header_bat_brickA_Vit())
+        {
+    	    break;
+        }
+        Pack_BAT_AFE_vBRICK_A_can_codegen(&batAfeBrickA, &canFrame);
+        if(HAL_CAN_AddTxMessage(&hcan1, &TxBrickAViT, canFrame.Data, &mailbox1Hz) == SYS_OK)
+        {
+    	    ret_val = SYS_OK;
+        }
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_bat_afe_brickB_write_data(void)
 {
-    app_can_tx_header_bat_brickB_Vit();
-    Pack_BAT_AFE_vBRICK_B_can_codegen(&batAfeBrickB, &canFrame);
-    HAL_CAN_AddTxMessage(&hcan1, &TxBrickBViT, canFrame.Data, &mailbox1Hz);
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+        if(SYS_OK != app_can_tx_header_bat_brickB_Vit())
+        {
+        	break;
+        }
+        Pack_BAT_AFE_vBRICK_B_can_codegen(&batAfeBrickB, &canFrame);
+        if(HAL_CAN_AddTxMessage(&hcan1, &TxBrickBViT, canFrame.Data, &mailbox1Hz) == SYS_OK)
+        {
+        	ret_val = SYS_OK;
+        }
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_bat_afe_brickC_write_data(void)
 {
-    app_can_tx_header_bat_brickC_Vit();
-    Pack_BAT_AFE_vBRICK_C_can_codegen(&batAfeBrickC, &canFrame);
-    HAL_CAN_AddTxMessage(&hcan1, &TxBrickCViT, canFrame.Data, &mailbox1Hz);
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+        if(SYS_OK!=app_can_tx_header_bat_brickC_Vit())
+        {
+        	break;
+        }
+        Pack_BAT_AFE_vBRICK_C_can_codegen(&batAfeBrickC, &canFrame);
+        if(HAL_CAN_AddTxMessage(&hcan1, &TxBrickCViT, canFrame.Data, &mailbox1Hz) == SYS_OK)
+        {
+        	ret_val = SYS_OK;
+        }
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_bat_afe_brickD_write_data(void)
 {
-    tx_header_bat_brickD_vit();
-    Pack_BAT_AFE_vBRICK_D_can_codegen(&batAfeBrickD, &canFrame);
-    HAL_CAN_AddTxMessage(&hcan1, &TxBrickDViT, canFrame.Data, &mailbox1Hz);
+	int16_t ret_val = SYS_ERR;
+	do
+	{
+        if(SYS_OK != tx_header_bat_brickD_vit())
+        {
+        	break;
+        }
+        Pack_BAT_AFE_vBRICK_D_can_codegen(&batAfeBrickD, &canFrame);
+        if(HAL_CAN_AddTxMessage(&hcan1, &TxBrickDViT, canFrame.Data, &mailbox1Hz) == SYS_OK)
+        {
+        	ret_val = SYS_OK;
+        }
+	}while(false);
+	return ret_val;
 }
 
 int16_t app_can_fcu_read_data()
 {
-    app_can_set_filter_config();
-    if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == HAL_OK)
+	int16_t ret_val = SYS_ERR;
+    do
     {
-        id = Unpack_FCU_STATE_REQUEST_can_codegen(&fcuState, &state, 1);
-	    switch (state[0])
+	    if(SYS_OK!=app_can_set_filter_config())
 	    {
-			case 0:
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
-				bq76952_FETs_OFF(); // replace with all fets off function call
-				break;
-			case 1:
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
-				bq76952_FETs_ON(); //replace with all fets on function call
-				break;
-			case 2:
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
-				bq76952_AFE_reset();// replace with afe reset function call
-				break;
-			case 3:
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
-				bq76952_Charge();
-				break;
-			case 4:
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);
-				bq76952_Discharge();
-				break;
-			default:
-				break;
-		}
-    }
+	    	break;
+	    }
+        if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, state) == SYS_OK)
+        {
+        	ret_val = SYS_OK;
+            Unpack_FCU_STATE_REQUEST_can_codegen(&fcuState, &state, 1);
+	        switch (state[0])
+	        {
+			    case 0:
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
+				    bq76952_FETs_OFF(); // replace with all fets off function call
+				    break;
+			    case 1:
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
+				    bq76952_FETs_ON(); //replace with all fets on function call
+				    break;
+			    case 2:
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+				    bq76952_AFE_reset();// replace with afe reset function call
+				    break;
+			    case 3:
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_RESET);
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+				    bq76952_Charge();
+				    break;
+			    case 4:
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_14,GPIO_PIN_SET);
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);
+				    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);
+				    bq76952_Discharge();
+				    break;
+			    default:
+				    break;
+		    }
+        }
+    }while(false);
+    return ret_val;
 }
