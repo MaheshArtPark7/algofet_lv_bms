@@ -16,13 +16,36 @@ typedef struct
 
 typedef struct
 {
-    uint16_t vCellModecmd ; //0x03C3 for 6S | 0x0303 for 4S
+
     uint16_t FETs_CONTROL ;
+    uint16_t REG0config;
+    uint16_t DFETOFFpinConfig;
+    uint16_t TS3config;
+    uint16_t DCHGPinconfig;
+    uint16_t DDSGPinconfig;
+    uint16_t vCellModecmd ;
     uint16_t enabledProtectionsA ;
     uint16_t enabledProtectionsB ;
+    uint16_t CHGFETprotectionsA;
+    uint16_t CHGFETprotectionsB;
+    uint16_t CHGFETprotectionsC;
+    uint16_t DSGFETprotectionsA;
+    uint16_t DSGFETprotectionsB;
+    uint16_t DSGFETprotectionsC;
+    uint16_t DefaultalarmMask;
+    uint16_t FEToptions;
     uint16_t prechargeStartVoltage;
     uint16_t prechargeStopVoltage;
-    uint16_t TS3config;
+    uint16_t Predischargetimeout;
+    uint16_t PredischargestopDelta;
+    uint16_t Balancingconfiguration;
+    uint16_t CUVthreshold;
+    uint16_t COVthreshold;
+    uint16_t OCCthreshold;
+    uint16_t OCD1threshold;
+    uint16_t SCDthreshold;
+    uint16_t SCDdelay;
+    uint16_t SCDLlatchLimit;
 
 }TS_AFEramreg_s;
 
