@@ -5,7 +5,6 @@
  */
 
 #include "bq76942.h"
-
 #include "spi.h"
 #include "app_afe.h"
 #include "bq76942_defines.h"
@@ -14,15 +13,6 @@ extern SPI_HandleTypeDef hspi1;
 
 static TsBmsPower_cfg TsBmsPower_cfg_t;
 static TS_AFEramreg_s AFE_RAMwrite;
-
-uint16_t CB_ActiveCells;  // Cell Balancing Active Cells
-uint8_t LD_ON = 0;	// Load Detect status bit
-uint8_t DSG = 0;   // discharge FET state
-uint8_t CHG = 0;   // charge FET state
-uint8_t PCHG = 0;  // pre-charge FET state
-uint8_t PDSG = 0;  // pre-discharge FET state
-uint8_t DCHG = 0;  // Fault state for Charging
-uint8_t DDSG = 0;  // Fault state for Discharging
 
 //------------------------------------------------------------------------------
 // Static Functions declaration
@@ -69,6 +59,9 @@ extern int16_t bq76942_enabledProtectionsB (void);
 extern int16_t bq76942_prechargeStartVolt(void);
 extern int16_t bq76942_prechargeStopVolt(void);
 extern int16_t bq76942_TS3config(void);
+extern int16_t bq76942_RAM_reg_commands(void);
+
+
 //------------------------------------------------------------------------------
 // Static Functions definition
 
@@ -80,89 +73,53 @@ int16_t bq76942_init(void)
     TsBmsPower_cfg_t.power_cfg_reg = PowerConfig;
     TsBmsPower_cfg_t.reg_val = 0x2D80;
     TsBmsPower_cfg_t.len = 4;
+
     AFE_RAMwrite.vCellModecmd = 0x03C3;           //0x03C3 for 6S | 0x0303 for 4S
     AFE_RAMwrite.FETs_CONTROL = 0x0;
     AFE_RAMwrite.enabledProtectionsA = 0xBC;
     AFE_RAMwrite.enabledProtectionsB = 0xF7;      //(Also sets OTC, OTD and OTF as 1)
     AFE_RAMwrite.prechargeStartVoltage = 0x0A8C;  //2700mV
     AFE_RAMwrite.prechargeStopVoltage = 0x0AF0;   //2800mV
-    AFE_RAMwrite.TS3config = 0x07;                //Default for TS3: 0X07 | Default for TS1: 0x07
+    AFE_RAMwrite.TS3config = 0x07;                //TS3Config --> 0x07      #ADC raw data reported (Updated)
+    AFE_RAMwrite.REG0config = 0x01;               //REG0Config --> 0x01
+    AFE_RAMwrite.DFETOFFpinConfig = 0x42;         //DFETOFFPinConfig --> 0x42#Set DFETOFF pin to control both CHG and DSG FET
+    AFE_RAMwrite.DCHGPinconfig = 0x25;            //DCHGPinConfig --> 0x25
+    AFE_RAMwrite.DDSGPinconfig = 0x25;            //DDSGPinConfig --> 0x25
+    AFE_RAMwrite.CHGFETprotectionsA = 0xFF;       //CHGFETProtectionsA --> 0xFF
+    AFE_RAMwrite.CHGFETprotectionsB = 0xFF;       //CHGFETProtectionsB --> 0xFF
+    AFE_RAMwrite.CHGFETprotectionsC = 0xFF;       //CHGFETProtectionsC --> 0xFF
+    AFE_RAMwrite.DSGFETprotectionsA = 0xFF;       //DSGFETProtectionsA --> 0xFF
+    AFE_RAMwrite.DSGFETprotectionsB = 0xFF;       //DSGFETProtectionsB --> 0xFF
+    AFE_RAMwrite.DSGFETprotectionsC = 0xFF;       //DSGFETProtectionsC --> 0xFF
+    AFE_RAMwrite.DefaultalarmMask = 0xF882;       //DefaultAlarmMask --> 0xF882
+    AFE_RAMwrite.FEToptions = 0X3D;               //FETOptions --> 0x3D      # AFE should wait for the host command before turning FETs On. PDSG FET is turned ON before DSG.
+    AFE_RAMwrite.Predischargetimeout = 0X00;      //PredischargeTimeout --> 0x00      # No Timeout
+    AFE_RAMwrite.PredischargestopDelta = 0X05;    //PredischargeStopDelta --> 0x05    #500mV
+    AFE_RAMwrite.Balancingconfiguration = 0X03;   //BalancingConfiguration --> 0x03 #Autonomous balancing On in Relax and Charging mode
+    AFE_RAMwrite.CUVthreshold = 0X31;             //CUVThreshold --> 0x31    #2479mV, unit is 50.6mV. Refer to TRM page 166
+    AFE_RAMwrite.COVthreshold = 0X55;             //COVThreshold --> 0x55    #4310mV, unit is 50.6mV
+    AFE_RAMwrite.OCCthreshold = 0X05;             //OCCThreshold --> 0x05    #Rsense is 1mohm. Unit is 2mV, so 10mV means a threshold of 10A
+    AFE_RAMwrite.OCD1threshold = 0X0A;            //OCD1Threshold --> 0x0A   #Rsense is 1mohm. Unit is 2mV, so 20mV means a threshold of 20A
+    AFE_RAMwrite.SCDthreshold = 0X02;             //SCDThreshold --> 0x02    #40mV across 1mohm, i.e, 40A. Refer to TRM page 168
+    AFE_RAMwrite.SCDdelay = 0X03;                 //SCDDelay --> 0x03        #30us. Enabled with a delay of (value - 1) * 15 us; min value of 1
+    AFE_RAMwrite.SCDLlatchLimit = 0X01;           //SCDLLatchLimit --> 0x01  #Only with load removal. Refer to TRM page 170
 
-    //bq76942_vCellMode();
-    //bq76942_FETs_Control();
-    //bq76942_TS3config();
+    bq76942_vCellMode();
+    bq76942_FETs_Control();
+    bq76942_TS3config();
+    bq76942_RAM_reg_commands();
+
 
         //RESET #Resets the Bq769x2 Registers
-        bq76942_AFE_reset();
+        //bq76942_AFE_reset();
 
         // Enter config update mode
-        //bq76942_set_config_update();
+        bq76942_set_config_update();
 
         // TODO: Check if CFGUPDATE bit is SET
 
         // Leave Reg1 and Reg2 mode in present state when entering deep-sleep state
         //bq76942_set_powercfg(&TsBmsPower_cfg_t);
-        //REG0Config --> 0x01
-        //DFETOFFPinConfig --> 0x42  #Set DFETOFF pin to control both CHG and DSG FET
-        //TS1Config --> 0xB3  #ADC raw data reported
-        //TS3Config --> 0xB3  #ADC raw data reported
-        //DCHGPinConfig --> 0x25
-        //DDSGPinConfig --> 0x25
-        //VCellMode --> 0x03C3 for 6S | 0x0303 for 4S
-        //EnabledProtectionsA --> 0xBC
-        //EnabledProtectionsB --> 0xF7
-        //CHGFETProtectionsA --> 0x00
-        //CHGFETProtectionsB --> 0x00
-        //CHGFETProtectionsC --> 0x00
-        //DSGFETProtectionsA --> 0x00
-        //DSGFETProtectionsB --> 0x00
-        //DSGFETProtectionsC --> 0x00
-        //DefaultAlarmMask --> 0xF882
-        //FETOptions --> 0x3D               # AFE should wait for the host command before turning FETs On. PDSG FET is turned ON before DSG.
-        //PrechargeStartVoltage --> 0x0A8C  # 2700mV
-        //PrechargeStopVoltage --> 0x0AF0   # 2800mV
-        //PredischargeTimeout --> 0x00      # No Timeout
-        //PredischargeStopDelta --> 0x05    #500mV
-        //BalancingConfiguration --> 0x03	#Autonomous balancing On in Relax and Charging mode
-        //CUVThreshold --> 0x31   			#2479mV, unit is 50.6mV. Refer to TRM page 166
-        //COVThreshold --> 0x55				#4310mV, unit is 50.6mV
-        //OCCThreshold --> 0x05				#Rsense is 1mohm. Unit is 2mV, so 10mV means a threshold of 10A
-        //OCD1Threshold --> 0x0A			#Rsense is 1mohm. Unit is 2mV, so 20mV means a threshold of 20A
-        //SCDThreshold --> 0x02				#40mV across 1mohm, i.e, 40A. Refer to TRM page 168
-        //SCDDelay --> 0x03					#30us. Enabled with a delay of (value - 1) * 15 us; min value of 1
-        //SCDLLatchLimit --> 0x01			#Only with load removal. Refer to TRM page 170
-
-    // Leave Reg1 and Reg2 mode in present state when entering deep-sleep state
-    //bq76942_set_powercfg(&TsBmsPower_cfg_t);
-    //REG0Config --> 0x01
-    //DFETOFFPinConfig --> 0x42  #Set DFETOFF pin to control both CHG and DSG FET
-    //TS1Config --> 0x07  #ADC raw data reported (Updated)
-    //TS3Config --> 0x07  #ADC raw data reported (Updated)
-    //DCHGPinConfig --> 0x25
-    //DDSGPinConfig --> 0x25
-    //VCellMode --> 0x03C3 for 6S | 0x0303 for 4S
-    //EnabledProtectionsA --> 0xBC
-    //EnabledProtectionsB --> 0xF7 (Also sets OTC, OTD and OTF as 1)
-    //CHGFETProtectionsA --> 0x00
-    //CHGFETProtectionsB --> 0x00
-    //CHGFETProtectionsC --> 0x00
-    //DSGFETProtectionsA --> 0x00
-    //DSGFETProtectionsB --> 0x00
-    //DSGFETProtectionsC --> 0x00
-    //DefaultAlarmMask --> 0xF882
-    //FETOptions --> 0x3D               # AFE should wait for the host command before turning FETs On. PDSG FET is turned ON before DSG.
-    //PrechargeStartVoltage --> 0x0A8C  # 2700mV
-    //PrechargeStopVoltage --> 0x0AF0   # 2800mV
-    //PredischargeTimeout --> 0x00      # No Timeout
-    //PredischargeStopDelta --> 0x05    #500mV
-    //BalancingConfiguration --> 0x03	#Autonomous balancing On in Relax and Charging mode
-    //CUVThreshold --> 0x31   			#2479mV, unit is 50.6mV. Refer to TRM page 166
-    //COVThreshold --> 0x55				#4310mV, unit is 50.6mV
-    //OCCThreshold --> 0x05				#Rsense is 1mohm. Unit is 2mV, so 10mV means a threshold of 10A
-    //OCD1Threshold --> 0x0A			#Rsense is 1mohm. Unit is 2mV, so 20mV means a threshold of 20A
-    //SCDThreshold --> 0x02				#40mV across 1mohm, i.e, 40A. Refer to TRM page 168
-    //SCDDelay --> 0x03					#30us. Enabled with a delay of (value - 1) * 15 us; min value of 1
-    //SCDLLatchLimit --> 0x01			#Only with load removal. Refer to TRM page 170
     ret_val = SYS_OK;
   } while(false);
 
@@ -353,15 +310,16 @@ static int16_t bq76942_FETs_ReadStatus(void)
   uint16_t data=0;
   do
   {
-    bq76942_dir_cmd_read(FETStatus, &data, 1);
-    HAL_Delay(50);
-    CHG = (0x1 & data);                // charge FET state
-    PCHG = ((0x2 & data) >> 1);        // pre-charge FET state
-    DSG = ((0x4 & data) >> 2);         // discharge FET state
-    PDSG = ((0x8 & data) >> 3);        // pre-discharge FET state
-    DCHG = ((0X10 & data) >> 4);       //Fault State for Charging
-    DDSG = ((0x20 & data) >> 5);       //Fault State for Discharging
-    //Bit Number 7 is for Alert Pin, add later if required
+    if(SYS_OK == bq76942_dir_cmd_read(FETStatus, &data, 1))
+    {
+      uint8_t CHG = (0x1 & data);                // charge FET state
+      uint8_t PCHG = ((0x2 & data) >> 1);        // pre-charge FET state
+      uint8_t DSG = ((0x4 & data) >> 2);         // discharge FET state
+      uint8_t PDSG = ((0x8 & data) >> 3);        // pre-discharge FET state
+      uint8_t DCHG = ((0X10 & data) >> 4);       //Fault State for Charging
+      uint8_t DDSG = ((0x20 & data) >> 5);       //Fault State for Discharging
+      //Bit Number 7 is for Alert Pin, add later if required
+    }
     ret_val = SYS_OK;
   }while(false);
   return ret_val;
@@ -453,7 +411,7 @@ static int16_t bq76942_settings_pwr_cfg(void)
     int16_t ret_val = SYS_ERR;
     uint16_t settings = 0x1D00;
     // Settings:Power Config
-//    bq76942_sub_cmd_access((uint16_t)PowerConfig, SPI_WR_BLOCKING, sizeof(settings) + SUB_CMD_LEN, &settings);
+//   bq76942_sub_cmd_access((uint16_t)PowerConfig, SPI_WR_BLOCKING, sizeof(settings) + SUB_CMD_LEN, &settings);
     ret_val = SYS_OK;
     return ret_val;
 }
@@ -631,6 +589,104 @@ extern int16_t bq76942_TS3config(void)
     {
       break;
     }ret_val = SYS_OK;
+  }while(false);
+  return ret_val;
+}
+
+int16_t bq76942_RAM_reg_commands(void)         //Function for calling all RAM Register Commands
+{
+  int16_t ret_val = SYS_ERR;
+  do
+  {
+    if(SYS_OK!= bq76942_write_RAM_register(REG0Config, AFE_RAMwrite.REG0config, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(DFETOFFPinConfig, AFE_RAMwrite.DFETOFFpinConfig, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(DCHGPinConfig, AFE_RAMwrite.DCHGPinconfig, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(DDSGPinConfig, AFE_RAMwrite.DDSGPinconfig, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(CHGFETProtectionsA, AFE_RAMwrite.CHGFETprotectionsA, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(CHGFETProtectionsB, AFE_RAMwrite.CHGFETprotectionsB, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(CHGFETProtectionsC, AFE_RAMwrite.CHGFETprotectionsC, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(DSGFETProtectionsA, AFE_RAMwrite.DSGFETprotectionsA, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(DSGFETProtectionsB, AFE_RAMwrite.DSGFETprotectionsB, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(DSGFETProtectionsC, AFE_RAMwrite.DSGFETprotectionsC, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(DefaultAlarmMask, AFE_RAMwrite.DefaultalarmMask, 2))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(FETOptions, AFE_RAMwrite.FEToptions, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(PredischargeTimeout, AFE_RAMwrite.Predischargetimeout, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(PredischargeStopDelta, AFE_RAMwrite.PredischargestopDelta, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(BalancingConfiguration, AFE_RAMwrite.Balancingconfiguration, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(CUVThreshold, AFE_RAMwrite.CUVthreshold, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(COVThreshold, AFE_RAMwrite.COVthreshold, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(OCCThreshold, AFE_RAMwrite.OCCthreshold, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(OCD1Threshold, AFE_RAMwrite.OCD1threshold, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(SCDThreshold, AFE_RAMwrite.SCDthreshold, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(SCDDelay, AFE_RAMwrite.SCDdelay, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(SCDLLatchLimit, AFE_RAMwrite.SCDLlatchLimit, 1))
+    {
+      break;
+    }
+    ret_val = SYS_OK;
   }while(false);
   return ret_val;
 }
