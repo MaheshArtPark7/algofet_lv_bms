@@ -26,6 +26,7 @@ typedef struct
     uint16_t vCellModecmd ;
     uint16_t enabledProtectionsA ;
     uint16_t enabledProtectionsB ;
+    uint16_t enabledProtectionsC ;
     uint16_t CHGFETprotectionsA;
     uint16_t CHGFETprotectionsB;
     uint16_t CHGFETprotectionsC;
