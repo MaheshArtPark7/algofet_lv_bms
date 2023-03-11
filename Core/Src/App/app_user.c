@@ -18,6 +18,7 @@ int16_t app_user_BMS_state_LED_indic (void);
 int16_t app_user_ERROR_LED_indic (void);
 
 
+
 int16_t app_user_SOC_LED_indic (void) //LED Indication for State of Charge (SOC)
 {
   int ret_val = SYS_ERR;
@@ -77,19 +78,19 @@ int16_t app_user_BMS_state_LED_indic (void) //LED Indication for BMS State
   int16_t ret_val = SYS_ERR;
   do
   {
-    if(1)//IDLE
+    if(1)//IDLE (To be updated)
     {
       HAL_GPIO_WritePin(LED5_OUT_BLUE_GPIO_Port, LED5_OUT_BLUE_Pin, 1);
       HAL_GPIO_WritePin(LED5_OUT_GREEN_GPIO_Port, LED5_OUT_GREEN_Pin, 0);
       HAL_GPIO_WritePin(LED5_OUT_GREEN_GPIO_Port, LED5_OUT_RED_Pin, 0);
     }
-    else if(2)//CHARGE or DISCHARGE
+    else if(2)//CHARGE or DISCHARGE (To be updated)
     {
       HAL_GPIO_WritePin(LED5_OUT_BLUE_GPIO_Port, LED5_OUT_BLUE_Pin, 0);
       HAL_GPIO_WritePin(LED5_OUT_GREEN_GPIO_Port, LED5_OUT_GREEN_Pin, 1);
       HAL_GPIO_WritePin(LED5_OUT_GREEN_GPIO_Port, LED5_OUT_RED_Pin, 0);
     }
-    else if(3)//ERROR
+    else if(3)//ERROR (To be updated)
     {
       HAL_GPIO_WritePin(LED5_OUT_BLUE_GPIO_Port, LED5_OUT_BLUE_Pin, 0);
       HAL_GPIO_WritePin(LED5_OUT_GREEN_GPIO_Port, LED5_OUT_GREEN_Pin, 0);
@@ -102,25 +103,11 @@ int16_t app_user_BMS_state_LED_indic (void) //LED Indication for BMS State
 
 int16_t app_user_ERROR_LED_indic (void) //LED Indication for Errors
 {
+  uint8_t SafetyAlertA_CUV,SafetyAlertA_COV,SafetyAlertA_OCC,SafetyAlertA_OCD1,SafetyAlertA_OCD2,SafetyAlertA_SCD,SafetyStatusA_CUV,SafetyStatusA_COV,SafetyStatusA_OCC,SafetyStatusA_OCD1,SafetyStatusA_OCD2,SafetyStatusA_SCD;
+    uint8_t SafetyAlertB_OTF,SafetyAlertB_OTINT,SafetyAlertB_OTD,SafetyAlertB_OTC,SafetyAlertB_UTINT,SafetyAlertB_UTD,SafetyAlertB_UTC,SafetyStatusB_OTF,SafetyStatusB_OTINT,SafetyStatusB_OTD,SafetyStatusB_OTC,SafetyStatusB_UTINT,SafetyStatusB_UTD,SafetyStatusB_UTC;
   int16_t ret_val = SYS_ERR;
-  uint8_t SafetyAlertA_CUV,SafetyAlertA_COV,SafetyAlertA_OCC,SafetyStatusA_CUV,SafetyStatusA_COV,SafetyStatusA_OCC;
-  int8_t data = 0;
   do
   {
-    if(SYS_OK == bq76942_dir_cmd_read(SafetyAlertA, &data, 1))
-    {
-      SafetyAlertA_CUV = ((0x4 & data) >> 2);
-      SafetyAlertA_COV = ((0x8 & data) >> 3);
-      SafetyAlertA_OCC = ((0x10 & data) >> 4);
-    }
-
-    if(SYS_OK == bq76942_dir_cmd_read(SafetyStatusA, &data, 1))
-    {
-      SafetyStatusA_CUV = ((0x4 & data) >> 2);
-      SafetyStatusA_COV = ((0x8 & data) >> 3);
-      SafetyStatusA_OCC = ((0x10 & data) >> 4);
-    }
-
     if(SafetyAlertA_COV==0 && SafetyStatusA_COV==1)  //OVERVOLTAGE ERROR
     {
       HAL_GPIO_WritePin(LED1_OUT_GPIO_Port, LED1_OUT_Pin, 0);
@@ -142,14 +129,14 @@ int16_t app_user_ERROR_LED_indic (void) //LED Indication for Errors
       HAL_GPIO_WritePin(LED3_OUT_GPIO_Port, LED3_OUT_Pin, 1);
       HAL_GPIO_WritePin(LED4_OUT_GPIO_Port, LED4_OUT_Pin, 0);
     }
-    if(1)//HIGH TEMPERATURE ERROR
+    if(1)//HIGH TEMPERATURE ERROR (To be updated)
     {
       HAL_GPIO_WritePin(LED1_OUT_GPIO_Port, LED1_OUT_Pin, 0);
       HAL_GPIO_WritePin(LED2_OUT_GPIO_Port, LED2_OUT_Pin, 1);
       HAL_GPIO_WritePin(LED3_OUT_GPIO_Port, LED3_OUT_Pin, 0);
       HAL_GPIO_WritePin(LED4_OUT_GPIO_Port, LED4_OUT_Pin, 0);
     }
-    if(1)//LOW TEMPERATURE ERROR
+    if(1)//LOW TEMPERATURE ERROR (To be updated)
     {
       HAL_GPIO_WritePin(LED1_OUT_GPIO_Port, LED1_OUT_Pin, 0);
       HAL_GPIO_WritePin(LED2_OUT_GPIO_Port, LED2_OUT_Pin, 1);
@@ -160,3 +147,35 @@ int16_t app_user_ERROR_LED_indic (void) //LED Indication for Errors
   }while(false);
   return ret_val;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
