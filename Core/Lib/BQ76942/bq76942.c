@@ -53,14 +53,8 @@ static int16_t bq76942_alarmEnable(uint16_t command);
 extern int16_t bq76942_ErrorFlagsRead (void);
 
 //RAM Register Write Commands Declaration
-extern int16_t bq76942_vCellMode (void);
-extern int16_t bq76942_FETs_Control(void);
-extern int16_t bq76942_enabledProtectionsA (void);
-extern int16_t bq76942_enabledProtectionsB (void);
-extern int16_t bq76942_prechargeStartVolt(void);
-extern int16_t bq76942_prechargeStopVolt(void);
-extern int16_t bq76942_TS3config(void);
-extern int16_t bq76942_RAM_reg_commands(void);
+int16_t bq76942_write_RAM_reg_commands(void) ;
+int16_t bq76942_read_RAM_reg_commands(void) ;
 
 
 //------------------------------------------------------------------------------
@@ -105,12 +99,15 @@ int16_t bq76942_init(void)
     AFE_RAMwrite.SCDthreshold = 0X02;             //SCDThreshold --> 0x02    #40mV across 1mohm, i.e, 40A. Refer to TRM page 168
     AFE_RAMwrite.SCDdelay = 0X03;                 //SCDDelay --> 0x03        #30us. Enabled with a delay of (value - 1) * 15 us; min value of 1
     AFE_RAMwrite.SCDLlatchLimit = 0X01;           //SCDLLatchLimit --> 0x01  #Only with load removal. Refer to TRM page 170
-    bq76942_vCellMode();
-    bq76942_FETs_Control();
-    bq76942_TS3config();
-    bq76942_RAM_reg_commands();
 
-
+    if(SYS_OK != bq76942_write_RAM_reg_commands())
+    {
+      break;
+    }
+    if(SYS_OK != bq76942_read_RAM_reg_commands())
+    {
+      break;
+    }
         //RESET #Resets the Bq769x2 Registers
         //bq76942_AFE_reset();
 
@@ -191,6 +188,7 @@ static int16_t bq76942_dischargeOFF(void)
   int16_t ret_val = SYS_ERR;
   do
   {
+
     if(SYS_OK != bq76942_write_sub_cmd(SUB_CMD_REG_LSB_ADDR, DSG_PDSG_OFF))
     {
       break;
@@ -399,16 +397,12 @@ int16_t bq76942_ErrorFlagsRead (void)
       SafetyAlertA_OCD2 = ((0x40 & SafetyalertA) >> 6);
       SafetyAlertA_SCD = ((0x80 & SafetyalertA) >> 7);
       //Bits 0 &1 are Reserved Bits
-    }
-
-    if(SYS_OK == bq76942_dir_cmd_read(SafetyStatusA, &SafetystatusA, 1))  //Reads Safety Status A Register
-    {
-      SafetyStatusA_CUV = ((0x4 & SafetystatusA) >> 2);
-      SafetyStatusA_COV = ((0x8 & SafetystatusA) >> 3);
-      SafetyStatusA_OCC = ((0x10 & SafetystatusA) >> 4);
-      SafetyStatusA_OCD1 = ((0x10 & SafetystatusA) >> 4);
-      SafetyStatusA_OCD2 = ((0x10 & SafetystatusA) >> 4);
-      SafetyStatusA_SCD = ((0x10 & SafetystatusA) >> 4);
+      SafetyStatusA_CUV = ((0x400 & SafetystatusA) >> 10);
+      SafetyStatusA_COV = ((0x800 & SafetystatusA) >> 11);
+      SafetyStatusA_OCC = ((0x1000 & SafetystatusA) >> 12);
+      SafetyStatusA_OCD1 = ((0x2000 & SafetystatusA) >> 13);
+      SafetyStatusA_OCD2 = ((0x4000 & SafetystatusA) >> 14);
+      SafetyStatusA_SCD = ((0x8000 & SafetystatusA) >> 15);
       //Bits 0 &1 are Reserved Bits
     }
     if(SYS_OK == bq76942_dir_cmd_read(SafetyAlertB, &SafetyalertB, 1))  //Reads Safety Alert B Register
@@ -421,16 +415,13 @@ int16_t bq76942_ErrorFlagsRead (void)
       SafetyAlertB_OTINT = ((0x40 & SafetyalertB) >> 6);
       SafetyAlertB_OTF = ((0x80 & SafetyalertB) >> 7);
       //Bit 3 is reserved
-    }
-    if(SYS_OK == bq76942_dir_cmd_read(SafetyStatusB, &SafetystatusB, 1))  //Reads Safety Status B Register
-    {
-      SafetyStatusB_UTC = (0x1 & SafetystatusB);
-      SafetyStatusB_UTD = ((0x2 & SafetystatusB) >> 1);
-      SafetyStatusB_UTINT = ((0x4 & SafetystatusB) >> 2);
-      SafetyStatusB_OTC = ((0x10 & SafetystatusB) >> 4);
-      SafetyStatusB_OTD = ((0x20 & SafetystatusB) >> 5);
-      SafetyStatusB_OTINT = ((0x40 & SafetystatusB) >> 6);
-      SafetyStatusB_OTF = ((0x80 & SafetystatusB) >> 7);
+      SafetyStatusB_UTC = ((0x100 & SafetystatusB) >> 8);
+      SafetyStatusB_UTD = ((0x200 & SafetystatusB) >> 9);
+      SafetyStatusB_UTINT = ((0x400 & SafetystatusB) >> 10);
+      SafetyStatusB_OTC = ((0x1000 & SafetystatusB) >> 12);
+      SafetyStatusB_OTD = ((0x2000 & SafetystatusB) >> 13);
+      SafetyStatusB_OTINT = ((0x4000 & SafetystatusB) >> 14);
+      SafetyStatusB_OTF = ((0x8000 & SafetystatusB) >> 15);
       //Bit 3 is reserved
     }
     ret_val = SYS_OK;
@@ -501,10 +492,9 @@ static int16_t bq76942_settings_reg12_cfg(void)
 }
 
 /*------------------RAM Register Commands-----------------------------*/
-extern int16_t bq76942_FETs_Control(void)
+
+int16_t bq76942_write_RAM_reg_commands(void)         //Function for writing to all RAM Registers
 {
-  //To control the FETs with MCU only
-  uint16_t data=0;
   int16_t ret_val = SYS_ERR;
   do
   {
@@ -512,161 +502,27 @@ extern int16_t bq76942_FETs_Control(void)
     {
       break;
     }
-    if(SYS_OK != bq76942_read_RAM_register(FET_CONTROL, &data))
-    {
-      break;
-    }
-    if(data!= AFE_RAMwrite.FETs_CONTROL)
-    {
-      break;
-    }
-    ret_val = SYS_OK;
-  } while(false);
-
-  return ret_val;
-}
-extern int16_t bq76942_vCellMode (void)
-{
-  int16_t ret_val = SYS_ERR;
-  uint16_t data=0;
-  do
-  {
     if(SYS_OK!= bq76942_write_RAM_register(VCellMode, AFE_RAMwrite.vCellModecmd, 2))
     {
       break;
     }
-    if(SYS_OK!= bq76942_read_RAM_register(VCellMode, &data))
-    {
-      break;
-    }
-    if(data!= AFE_RAMwrite.vCellModecmd)
-    {
-      break;
-    }
-      ret_val = SYS_OK;
-  }while(false);
-  return ret_val;
-}
-extern int16_t bq76942_enabledProtectionsA (void)
-{
-  int16_t ret_val = SYS_ERR;
-  uint16_t data=0;
-  do
-  {
     if(SYS_OK!= bq76942_write_RAM_register(EnabledProtectionsA, AFE_RAMwrite.enabledProtectionsA, 1))
     {
       break;
     }
-    if(SYS_OK!= bq76942_read_RAM_register(EnabledProtectionsA, &data))
-    {
-      break;
-    }
-    if(data!= AFE_RAMwrite.enabledProtectionsA)
-    {
-      break;
-    }
-    ret_val = SYS_OK;
-  }while(false);
-  return ret_val;
-}
-extern int16_t bq76942_enabledProtectionsB (void)
-{
-  int16_t ret_val = SYS_ERR;
-  uint16_t data=0;
-  do
-  {
     if(SYS_OK!= bq76942_write_RAM_register(EnabledProtectionsB, AFE_RAMwrite.enabledProtectionsB, 1))
     {
       break;
     }
-    if(SYS_OK!= bq76942_read_RAM_register(EnabledProtectionsB, &data))
-    {
-      break;
-    }
-    if(data!= AFE_RAMwrite.enabledProtectionsB)
-    {
-      break;
-    }
-    ret_val = SYS_OK;
-  }while(false);
-  return ret_val;
-}
-extern int16_t bq76942_prechargeStartVolt(void)
-{
-  int16_t ret_val = SYS_ERR;
-  uint16_t data=0;
-  do
-  {
-    if(SYS_OK!= bq76942_write_RAM_register(PrechargeStartVoltage, AFE_RAMwrite.prechargeStartVoltage, 2))
-    {
-      break;
-    }
-    if(SYS_OK!= bq76942_read_RAM_register(PrechargeStartVoltage, &data))
-    {
-      break;
-    }
-    if(data!= AFE_RAMwrite.prechargeStartVoltage)
-    {
-      break;
-    }
-    ret_val = SYS_OK;
-  }while(false);
-  return ret_val;
-}
-extern int16_t bq76942_prechargeStopVolt(void)
-{
-  int16_t ret_val = SYS_ERR;
-  uint16_t data=0;
-  do
-  {
-    if(SYS_OK!= bq76942_write_RAM_register(PrechargeStopVoltage, AFE_RAMwrite.prechargeStopVoltage, 2))
-    {
-      break;
-    }
-    if(SYS_OK!= bq76942_read_RAM_register(PrechargeStopVoltage, &data))
-    {
-      break;
-    }
-    if(data!= AFE_RAMwrite.prechargeStopVoltage)
-    {
-      break;
-    }
-    ret_val = SYS_OK;
-  }while(false);
-  return ret_val;
-}
-extern int16_t bq76942_TS3config(void)
-{
-  int16_t ret_val = SYS_ERR;
-  uint16_t data=0;
-  do
-  {
-    if(SYS_OK!= bq76942_write_RAM_register(PrechargeStopVoltage, AFE_RAMwrite.TS3config, 1))
-    {
-      break;
-    }
-    if(SYS_OK!= bq76942_read_RAM_register(PrechargeStopVoltage, &data))
-    {
-      break;
-    }
-    if(data!= AFE_RAMwrite.TS3config)
-    {
-      break;
-    }ret_val = SYS_OK;
-  }while(false);
-  return ret_val;
-}
-
-int16_t bq76942_RAM_reg_commands(void)         //Function for calling all RAM Register Commands
-{
-  int16_t ret_val = SYS_ERR;
-  do
-  {
     if(SYS_OK!= bq76942_write_RAM_register(EnabledProtectionsC, AFE_RAMwrite.enabledProtectionsC, 2))
     {
       break;
     }
     if(SYS_OK!= bq76942_write_RAM_register(REG0Config, AFE_RAMwrite.REG0config, 1))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(TS3Config, AFE_RAMwrite.TS3config, 1))
     {
       break;
     }
@@ -714,6 +570,14 @@ int16_t bq76942_RAM_reg_commands(void)         //Function for calling all RAM Re
     {
       break;
     }
+    if(SYS_OK!= bq76942_write_RAM_register(PrechargeStartVoltage, AFE_RAMwrite.prechargeStartVoltage, 2))
+    {
+      break;
+    }
+    if(SYS_OK!= bq76942_write_RAM_register(PrechargeStopVoltage, AFE_RAMwrite.prechargeStopVoltage, 2))
+    {
+      break;
+    }
     if(SYS_OK!= bq76942_write_RAM_register(PredischargeTimeout, AFE_RAMwrite.Predischargetimeout, 1))
     {
       break;
@@ -751,6 +615,137 @@ int16_t bq76942_RAM_reg_commands(void)         //Function for calling all RAM Re
       break;
     }
     if(SYS_OK!= bq76942_write_RAM_register(SCDLLatchLimit, AFE_RAMwrite.SCDLlatchLimit, 1))
+    {
+      break;
+    }
+    ret_val = SYS_OK;
+  }while(false);
+  return ret_val;
+}
+
+int16_t bq76942_read_RAM_reg_commands(void)  ////Function for reading from all RAM Registers
+{
+  uint16_t data = 0;
+  int8_t ret_val = SYS_ERR;
+  do
+  {
+    if((SYS_OK!= bq76942_read_RAM_register(FET_CONTROL, &data)) && (AFE_RAMwrite.FETs_CONTROL != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(VCellMode, &data)) && (AFE_RAMwrite.vCellModecmd != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(REG0Config, &data)) && (AFE_RAMwrite.REG0config != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(TS3Config, &data)) && (AFE_RAMwrite.TS3config != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(EnabledProtectionsA, &data)) && (AFE_RAMwrite.enabledProtectionsA != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(EnabledProtectionsB, &data)) && (AFE_RAMwrite.enabledProtectionsB != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(EnabledProtectionsC, &data)) && (AFE_RAMwrite.enabledProtectionsC != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(CHGFETProtectionsA, &data)) && (AFE_RAMwrite.CHGFETprotectionsA != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(CHGFETProtectionsB, &data)) && (AFE_RAMwrite.CHGFETprotectionsB != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(CHGFETProtectionsC, &data)) && (AFE_RAMwrite.CHGFETprotectionsC != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(DFETOFFPinConfig, &data)) && (AFE_RAMwrite.DFETOFFpinConfig != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(DCHGPinConfig, &data)) && (AFE_RAMwrite.DCHGPinconfig != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(DDSGPinConfig, &data)) && (AFE_RAMwrite.DDSGPinconfig != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(DSGFETProtectionsA, &data)) && (AFE_RAMwrite.DSGFETprotectionsA != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(DSGFETProtectionsB, &data)) && (AFE_RAMwrite.DSGFETprotectionsB != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(DSGFETProtectionsC, &data)) && (AFE_RAMwrite.DSGFETprotectionsC != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(DefaultAlarmMask, &data)) && (AFE_RAMwrite.DefaultalarmMask != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(FETOptions, &data)) && (AFE_RAMwrite.FEToptions != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(PrechargeStartVoltage, &data)) && (AFE_RAMwrite.prechargeStartVoltage != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(PrechargeStopVoltage, &data)) && (AFE_RAMwrite.prechargeStopVoltage != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(PredischargeTimeout, &data)) && (AFE_RAMwrite.Predischargetimeout != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(PredischargeStopDelta, &data)) && (AFE_RAMwrite.PredischargestopDelta != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(BalancingConfiguration, &data)) && (AFE_RAMwrite.Balancingconfiguration != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(CUVThreshold, &data)) && (AFE_RAMwrite.CUVthreshold != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(COVThreshold, &data)) && (AFE_RAMwrite.COVthreshold != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(OCCThreshold, &data)) && (AFE_RAMwrite.OCCthreshold != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(OCD1Threshold, &data)) && (AFE_RAMwrite.OCD1threshold != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(SCDThreshold, &data)) && (AFE_RAMwrite.SCDthreshold != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(SCDDelay, &data)) && (AFE_RAMwrite.SCDdelay != data))
+    {
+      break;
+    }
+    if((SYS_OK!= bq76942_read_RAM_register(SCDLLatchLimit, &data)) && (AFE_RAMwrite.SCDLlatchLimit != data))
     {
       break;
     }
