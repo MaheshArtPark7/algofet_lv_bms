@@ -50,6 +50,7 @@ static int16_t bq76942_FETs_ReadStatus(void);
 
 //Direct Commands Declaration
 static int16_t bq76942_alarmEnable(uint16_t command);
+extern int16_t bq76942_ErrorFlagsRead (void);
 
 //RAM Register Write Commands Declaration
 extern int16_t bq76942_vCellMode (void);
@@ -76,8 +77,9 @@ int16_t bq76942_init(void)
 
     AFE_RAMwrite.vCellModecmd = 0x03C3;           //0x03C3 for 6S | 0x0303 for 4S
     AFE_RAMwrite.FETs_CONTROL = 0x0;
-    AFE_RAMwrite.enabledProtectionsA = 0xBC;
-    AFE_RAMwrite.enabledProtectionsB = 0xF7;      //(Also sets OTC, OTD and OTF as 1)
+    AFE_RAMwrite.enabledProtectionsA = 0xBC;      //Enables CUV, COV, OCC, OCD1 and SCD
+    AFE_RAMwrite.enabledProtectionsB = 0xF7;      //Enables UTC, UTD, UTINT, OTC, OTD, OTINT and OTF
+    AFE_RAMwrite.enabledProtectionsC = 0xF6;      //Enables  HWDF, PTO, COVL, OCDL, SCDL, OCD3
     AFE_RAMwrite.prechargeStartVoltage = 0x0A8C;  //2700mV
     AFE_RAMwrite.prechargeStopVoltage = 0x0AF0;   //2800mV
     AFE_RAMwrite.TS3config = 0x07;                //TS3Config --> 0x07      #ADC raw data reported (Updated)
@@ -97,13 +99,12 @@ int16_t bq76942_init(void)
     AFE_RAMwrite.PredischargestopDelta = 0X05;    //PredischargeStopDelta --> 0x05    #500mV
     AFE_RAMwrite.Balancingconfiguration = 0X03;   //BalancingConfiguration --> 0x03 #Autonomous balancing On in Relax and Charging mode
     AFE_RAMwrite.CUVthreshold = 0X31;             //CUVThreshold --> 0x31    #2479mV, unit is 50.6mV. Refer to TRM page 166
-    AFE_RAMwrite.COVthreshold = 0X55;             //COVThreshold --> 0x55    #4310mV, unit is 50.6mV
+    AFE_RAMwrite.COVthreshold = 0X55;             //COVThreshold --> 0x55    #4301mV, unit is 50.6mV
     AFE_RAMwrite.OCCthreshold = 0X05;             //OCCThreshold --> 0x05    #Rsense is 1mohm. Unit is 2mV, so 10mV means a threshold of 10A
     AFE_RAMwrite.OCD1threshold = 0X0A;            //OCD1Threshold --> 0x0A   #Rsense is 1mohm. Unit is 2mV, so 20mV means a threshold of 20A
     AFE_RAMwrite.SCDthreshold = 0X02;             //SCDThreshold --> 0x02    #40mV across 1mohm, i.e, 40A. Refer to TRM page 168
     AFE_RAMwrite.SCDdelay = 0X03;                 //SCDDelay --> 0x03        #30us. Enabled with a delay of (value - 1) * 15 us; min value of 1
     AFE_RAMwrite.SCDLlatchLimit = 0X01;           //SCDLLatchLimit --> 0x01  #Only with load removal. Refer to TRM page 170
-
     bq76942_vCellMode();
     bq76942_FETs_Control();
     bq76942_TS3config();
@@ -307,17 +308,17 @@ static int16_t bq76942_FETs_ReadStatus(void)
 {
   // Reads FET Status to see which FETs are enabled
   uint8_t ret_val = SYS_ERR;
-  uint16_t data=0;
+  uint16_t FET_status=0;
   do
   {
-    if(SYS_OK == bq76942_dir_cmd_read(FETStatus, &data, 1))
+    if(SYS_OK == bq76942_dir_cmd_read(FETStatus, &FET_status, 1))
     {
-      uint8_t CHG = (0x1 & data);                // charge FET state
-      uint8_t PCHG = ((0x2 & data) >> 1);        // pre-charge FET state
-      uint8_t DSG = ((0x4 & data) >> 2);         // discharge FET state
-      uint8_t PDSG = ((0x8 & data) >> 3);        // pre-discharge FET state
-      uint8_t DCHG = ((0X10 & data) >> 4);       //Fault State for Charging
-      uint8_t DDSG = ((0x20 & data) >> 5);       //Fault State for Discharging
+      uint8_t CHG = (0x1 & FET_status);                // charge FET state
+      uint8_t PCHG = ((0x2 & FET_status) >> 1);        // pre-charge FET state
+      uint8_t DSG = ((0x4 & FET_status) >> 2);         // discharge FET state
+      uint8_t PDSG = ((0x8 & FET_status) >> 3);        // pre-discharge FET state
+      uint8_t DCHG = ((0X10 & FET_status) >> 4);       //Fault State for Charging
+      uint8_t DDSG = ((0x20 & FET_status) >> 5);       //Fault State for Discharging
       //Bit Number 7 is for Alert Pin, add later if required
     }
     ret_val = SYS_OK;
@@ -376,6 +377,69 @@ extern int16_t bq76942_get_device_number(uint16_t *pDev_num)
 }
 
 //----------------------------------------------DIRECT COMMANDS-------------------------------------------------------------------
+
+int16_t bq76942_ErrorFlagsRead (void)
+{
+  int16_t SafetyalertA = 0;
+  int16_t SafetystatusA = 0;
+  int16_t SafetyalertB = 0;
+  int16_t SafetystatusB = 0;
+
+  uint8_t SafetyAlertA_CUV,SafetyAlertA_COV,SafetyAlertA_OCC,SafetyAlertA_OCD1,SafetyAlertA_OCD2,SafetyAlertA_SCD,SafetyStatusA_CUV,SafetyStatusA_COV,SafetyStatusA_OCC,SafetyStatusA_OCD1,SafetyStatusA_OCD2,SafetyStatusA_SCD;
+  uint8_t SafetyAlertB_OTF,SafetyAlertB_OTINT,SafetyAlertB_OTD,SafetyAlertB_OTC,SafetyAlertB_UTINT,SafetyAlertB_UTD,SafetyAlertB_UTC,SafetyStatusB_OTF,SafetyStatusB_OTINT,SafetyStatusB_OTD,SafetyStatusB_OTC,SafetyStatusB_UTINT,SafetyStatusB_UTD,SafetyStatusB_UTC;
+  int8_t ret_val = SYS_ERR;
+  do
+  {
+    if(SYS_OK == bq76942_dir_cmd_read(SafetyAlertA, &SafetyalertA, 1)) //Reads Safety Alert A Register
+    {
+      SafetyAlertA_CUV = ((0x4 & SafetyalertA) >> 2);
+      SafetyAlertA_COV = ((0x8 & SafetyalertA) >> 3);
+      SafetyAlertA_OCC = ((0x10 & SafetyalertA) >> 4);
+      SafetyAlertA_OCD1 = ((0x20 & SafetyalertA) >> 5);
+      SafetyAlertA_OCD2 = ((0x40 & SafetyalertA) >> 6);
+      SafetyAlertA_SCD = ((0x80 & SafetyalertA) >> 7);
+      //Bits 0 &1 are Reserved Bits
+    }
+
+    if(SYS_OK == bq76942_dir_cmd_read(SafetyStatusA, &SafetystatusA, 1))  //Reads Safety Status A Register
+    {
+      SafetyStatusA_CUV = ((0x4 & SafetystatusA) >> 2);
+      SafetyStatusA_COV = ((0x8 & SafetystatusA) >> 3);
+      SafetyStatusA_OCC = ((0x10 & SafetystatusA) >> 4);
+      SafetyStatusA_OCD1 = ((0x10 & SafetystatusA) >> 4);
+      SafetyStatusA_OCD2 = ((0x10 & SafetystatusA) >> 4);
+      SafetyStatusA_SCD = ((0x10 & SafetystatusA) >> 4);
+      //Bits 0 &1 are Reserved Bits
+    }
+    if(SYS_OK == bq76942_dir_cmd_read(SafetyAlertB, &SafetyalertB, 1))  //Reads Safety Alert B Register
+    {
+      SafetyAlertB_UTC = (0x1 & SafetyalertB);
+      SafetyAlertB_UTD = ((0x2 & SafetyalertB) >> 1);
+      SafetyAlertB_UTINT = ((0x4 & SafetyalertB) >> 2);
+      SafetyAlertB_OTC = ((0x10 & SafetyalertB) >> 4);
+      SafetyAlertB_OTD = ((0x20 & SafetyalertB) >> 5);
+      SafetyAlertB_OTINT = ((0x40 & SafetyalertB) >> 6);
+      SafetyAlertB_OTF = ((0x80 & SafetyalertB) >> 7);
+      //Bit 3 is reserved
+    }
+    if(SYS_OK == bq76942_dir_cmd_read(SafetyStatusB, &SafetystatusB, 1))  //Reads Safety Status B Register
+    {
+      SafetyStatusB_UTC = (0x1 & SafetystatusB);
+      SafetyStatusB_UTD = ((0x2 & SafetystatusB) >> 1);
+      SafetyStatusB_UTINT = ((0x4 & SafetystatusB) >> 2);
+      SafetyStatusB_OTC = ((0x10 & SafetystatusB) >> 4);
+      SafetyStatusB_OTD = ((0x20 & SafetystatusB) >> 5);
+      SafetyStatusB_OTINT = ((0x40 & SafetystatusB) >> 6);
+      SafetyStatusB_OTF = ((0x80 & SafetystatusB) >> 7);
+      //Bit 3 is reserved
+    }
+    ret_val = SYS_OK;
+  }while(false);
+  return ret_val;
+}
+
+
+
 
 static int16_t bq76942_alarmEnable(uint16_t command)
 {
@@ -598,6 +662,10 @@ int16_t bq76942_RAM_reg_commands(void)         //Function for calling all RAM Re
   int16_t ret_val = SYS_ERR;
   do
   {
+    if(SYS_OK!= bq76942_write_RAM_register(EnabledProtectionsC, AFE_RAMwrite.enabledProtectionsC, 2))
+    {
+      break;
+    }
     if(SYS_OK!= bq76942_write_RAM_register(REG0Config, AFE_RAMwrite.REG0config, 1))
     {
       break;

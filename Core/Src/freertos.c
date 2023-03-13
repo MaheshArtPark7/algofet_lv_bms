@@ -152,6 +152,7 @@ void app_task_1Hz(void const *argument)
     for (;;)
     {
         app_afe_data_read();
+        bq76942_ErrorFlagsRead();
         //xSemaphoreTake(can_task_semaphore_handle, 10);
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         //xSemaphoreGive(can_task_semaphore_handle);
