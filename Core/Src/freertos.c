@@ -207,6 +207,11 @@ void app_task_100hz(void const *argument)
     /* USER CODE BEGIN app_task_100hz */
     TickType_t xLastWakeTime;
     uint32_t* pReceive;
+    if(ee24_isConnected() == 1)
+    {
+    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+    }
+
     int counter = 0;
     const TickType_t xFrequency = 10;
     xLastWakeTime = xTaskGetTickCount();
