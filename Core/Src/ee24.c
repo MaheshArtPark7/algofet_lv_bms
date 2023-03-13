@@ -13,7 +13,7 @@
 #elif (_EEPROM_SIZE_KBIT == 4) || (_EEPROM_SIZE_KBIT == 8) || (_EEPROM_SIZE_KBIT == 16)
 #define _EEPROM_PSIZE     16
 #else
-#define _EEPROM_PSIZE     32
+#define _EEPROM_PSIZE     256
 #endif
 
 uint8_t ee24_lock = 0;
